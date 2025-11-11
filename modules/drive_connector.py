@@ -67,7 +67,7 @@ def get_access_token():
         url = f'https://{hostname}/api/v2/connection?include_secrets=true&connector_names=google-drive'
         headers = {
             'Accept': 'application/json',
-            'X-Replit-Token': x_replit_token
+            'X_REPLIT_TOKEN': x_replit_token
         }
         
         response = requests.get(url, headers=headers)
