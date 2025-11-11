@@ -110,19 +110,29 @@ def main():
     print(f"Whisper Model: {config.WHISPER_MODEL}")
     print("="*80)
     
+    if not is_colab():
+        print("\nNOTE: For best results, run this pipeline in Google Colab where your")
+        print("      Phase 3 dataset is stored in Google Drive.")
+        print("\nTo use in Google Colab:")
+        print("  1. Clone this repository to Colab")
+        print("  2. Mount your Google Drive")
+        print("  3. Run: python main.py --dataset Dev --batch 5")
+        print("\nIn Replit, this code is primarily for development and review.")
+        print("="*80)
+    
     if not setup_drive_access():
-        print("Error: Could not set up Google Drive access")
+        print("\nError: Could not set up Google Drive access")
         if not is_colab():
-            print("\nFor Replit: Make sure Google Drive integration is connected")
-            print("For Colab: Make sure Drive is mounted")
+            print("For Replit: This tool is designed to run in Google Colab")
+            print("For Colab: Make sure Google Drive is mounted")
         sys.exit(1)
     
     audio_dir = config.get_audio_path(args.dataset)
     transcript_dir = config.get_transcript_path(args.dataset)
     
     if not audio_dir or not transcript_dir:
-        print("Error: Could not determine data paths")
-        print("Make sure you're running in Colab with Drive mounted or in Replit with Drive integration")
+        print("\nError: Could not determine data paths")
+        print("This pipeline is designed to run in Google Colab with mounted Drive")
         sys.exit(1)
     
     print(f"\nAudio directory: {audio_dir}")

@@ -59,13 +59,24 @@ def get_alignment_details(reference, hypothesis):
         Dictionary with alignment details
     """
     try:
-        measures = jiwer.compute_measures(reference, hypothesis)
-        return {
-            'substitutions': measures['substitutions'],
-            'deletions': measures['deletions'],
-            'insertions': measures['insertions'],
-            'hits': measures['hits']
-        }
+        if hasattr(jiwer, 'process_words'):
+            output = jiwer.process_words(reference, hypothesis)
+            return {
+                'substitutions': output.substitutions,
+                'deletions': output.deletions,
+                'insertions': output.insertions,
+                'hits': output.hits
+            }
+        elif hasattr(jiwer, 'compute_measures'):
+            measures = jiwer.compute_measures(reference, hypothesis)
+            return {
+                'substitutions': measures['substitutions'],
+                'deletions': measures['deletions'],
+                'insertions': measures['insertions'],
+                'hits': measures['hits']
+            }
+        else:
+            return None
     except Exception as e:
         print(f"Error computing alignment: {e}")
         return None

@@ -46,26 +46,9 @@ Process audio segments from the Fearless Steps Challenge Phase 3 dataset, genera
 
 ## Usage
 
-### In Replit
+**Recommended Environment:** Google Colab (where your dataset is stored)
 
-```bash
-# Process 5 files from Dev set (default)
-python main.py
-
-# Process specific dataset
-python main.py --dataset Train
-
-# Process specific audio file
-python main.py --file filename.wav
-
-# Process more files in batch
-python main.py --batch 10
-
-# Disable timestamps display
-python main.py --no-timestamps
-```
-
-### In Google Colab
+### In Google Colab (Primary Usage)
 
 ```python
 # Clone from GitHub
@@ -76,9 +59,22 @@ python main.py --no-timestamps
 from google.colab import drive
 drive.mount('/content/drive')
 
-# Run the pipeline
-!python main.py --batch 5
+# Run the pipeline (examples)
+!python main.py --batch 5                    # Process 5 files from Dev set
+!python main.py --dataset Train --batch 10   # Process 10 from Train set
+!python main.py --file filename.wav          # Process specific file
+!python main.py --no-timestamps              # Disable timestamp display
 ```
+
+### In Replit (Development & Code Review)
+
+Replit is primarily used for:
+- Writing and reviewing code
+- Testing the modular structure
+- Viewing usage with `python main.py --help`
+- Pushing code to GitHub
+
+For actual data processing, use Google Colab where your Phase 3 dataset is accessible in Drive.
 
 ## Dependencies
 
