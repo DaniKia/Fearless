@@ -44,6 +44,57 @@ def setup_drive_access():
         print("Unknown environment - Drive access may not work")
         return False
 
+def get_access_token():
+    """
+    Get access token from Replit Google Drive connection.
+    Returns access token string or None if unavailable.
+    """
+    try:
+        import requests
+        
+        hostname = os.environ.get('REPLIT_CONNECTORS_HOSTNAME')
+        x_replit_token = None
+        
+        if os.environ.get('REPL_IDENTITY'):
+            x_replit_token = 'repl ' + os.environ['REPL_IDENTITY']
+        elif os.environ.get('WEB_REPL_RENEWAL'):
+            x_replit_token = 'depl ' + os.environ['WEB_REPL_RENEWAL']
+        
+        if not hostname or not x_replit_token:
+            print("Warning: Replit connector environment variables not found")
+            return None
+        
+        url = f'https://{hostname}/api/v2/connection?include_secrets=true&connector_names=google-drive'
+        headers = {
+            'Accept': 'application/json',
+            'X-Replit-Token': x_replit_token
+        }
+        
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        
+        data = response.json()
+        items = data.get('items', [])
+        
+        if not items:
+            print("Warning: No Google Drive connection found")
+            return None
+        
+        connection_settings = items[0]
+        settings = connection_settings.get('settings', {})
+        
+        access_token = settings.get('access_token') or settings.get('oauth', {}).get('credentials', {}).get('access_token')
+        
+        if not access_token:
+            print("Warning: No access token found in connection settings")
+            return None
+        
+        return access_token
+        
+    except Exception as e:
+        print(f"Error getting access token: {e}")
+        return None
+
 def get_drive_service():
     """
     Get Google Drive API service for Replit environment.
@@ -56,15 +107,14 @@ def get_drive_service():
         try:
             from google.oauth2.credentials import Credentials
             from googleapiclient.discovery import build
-            import json
             
-            creds_json = os.environ.get('GOOGLE_DRIVE_CREDENTIALS')
-            if not creds_json:
-                print("Warning: GOOGLE_DRIVE_CREDENTIALS not found in environment")
+            access_token = get_access_token()
+            if not access_token:
+                print("Warning: Could not get access token from Replit connection")
+                print("Please make sure Google Drive is connected in your Replit project")
                 return None
             
-            creds_data = json.loads(creds_json)
-            creds = Credentials.from_authorized_user_info(creds_data)
+            creds = Credentials(token=access_token)
             service = build('drive', 'v3', credentials=creds)
             return service
         except Exception as e:

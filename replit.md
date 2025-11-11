@@ -74,6 +74,14 @@ Replit is primarily used for:
 - Viewing usage with `python main.py --help`
 - Pushing code to GitHub
 
+**Google Drive Connection in Replit:**
+The project has Replit's Google Drive integration installed. This allows the code to access your Drive files through Replit's secure connection API. To use it:
+
+1. The connection is already added to your project
+2. You may need to authorize access by clicking the "Connect" button in the Replit integrations panel
+3. The connection uses limited scopes, so it may only access files created by the app
+4. For full dataset access, Google Colab is still recommended where you can mount your entire Drive
+
 For actual data processing, use Google Colab where your Phase 3 dataset is accessible in Drive.
 
 ## Dependencies
@@ -85,6 +93,13 @@ For actual data processing, use Google Colab where your Phase 3 dataset is acces
 - soundfile (Audio file handling)
 
 ## Recent Changes
+
+**2025-11-11**: Google Drive Connection Update
+- Updated drive_connector.py to use Replit's Google Drive integration
+- Implemented automatic token fetching from Replit Connectors API
+- Connection works seamlessly in Replit environment
+- Added requests dependency for API calls
+- Updated documentation with connection setup instructions
 
 **2025-01-11**: Initial project setup
 - Created modular Python architecture
