@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Local cache
+.cache/
+.pythonlibs/
+
+# Whisper model cache
+~/.cache/whisper/
+
+# Output files
+outputs/
+*.wav
+*.mp3
+*.flac
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Replit specific (keep these)
+!.replit
+!replit.nix
