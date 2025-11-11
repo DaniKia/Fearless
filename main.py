@@ -1,0 +1,143 @@
+"""
+Main script for ASR pipeline.
+Transcribe audio segments using Whisper and compare with reference transcripts.
+"""
+
+import sys
+import os
+import argparse
+from pathlib import Path
+
+from modules.drive_connector import setup_drive_access, is_colab
+from modules.data_loader import get_audio_files_with_transcripts
+from modules.whisper_transcriber import transcribe_audio
+from modules.evaluator import display_comparison
+import config
+
+def run_single_file(audio_path, transcript_dir, show_timestamps=True):
+    """
+    Process a single audio file.
+    
+    Args:
+        audio_path: Path to audio file
+        transcript_dir: Directory containing reference transcripts
+        show_timestamps: Whether to show timestamps in output
+    """
+    audio_filename = os.path.basename(audio_path)
+    
+    from modules.data_loader import load_reference_transcript
+    reference = load_reference_transcript(transcript_dir, audio_filename)
+    
+    if not reference:
+        print(f"Error: No reference transcript found for {audio_filename}")
+        return
+    
+    hypothesis = transcribe_audio(audio_path, model_name=config.WHISPER_MODEL)
+    
+    display_comparison(audio_filename, reference, hypothesis, show_timestamps=show_timestamps)
+
+def run_batch(audio_dir, transcript_dir, limit=5, show_timestamps=True):
+    """
+    Process multiple audio files in batch.
+    
+    Args:
+        audio_dir: Directory containing audio files
+        transcript_dir: Directory containing reference transcripts
+        limit: Maximum number of files to process
+        show_timestamps: Whether to show timestamps in output
+    """
+    pairs = get_audio_files_with_transcripts(audio_dir, transcript_dir, limit=limit)
+    
+    if not pairs:
+        print("No audio files with transcripts found")
+        return
+    
+    print(f"\nFound {len(pairs)} audio files with transcripts")
+    print(f"Processing {min(limit, len(pairs))} files...\n")
+    
+    results = []
+    
+    for i, (audio_path, reference) in enumerate(pairs, 1):
+        audio_filename = os.path.basename(audio_path)
+        print(f"\n[{i}/{len(pairs)}] Processing: {audio_filename}")
+        
+        hypothesis = transcribe_audio(audio_path, model_name=config.WHISPER_MODEL)
+        
+        metrics = display_comparison(
+            audio_filename, 
+            reference, 
+            hypothesis, 
+            show_timestamps=show_timestamps
+        )
+        
+        results.append({
+            'filename': audio_filename,
+            'wer': metrics['wer'],
+            'cer': metrics['cer']
+        })
+    
+    print("\n" + "="*80)
+    print("SUMMARY STATISTICS")
+    print("="*80)
+    
+    avg_wer = sum(r['wer'] for r in results) / len(results) if results else 0
+    avg_cer = sum(r['cer'] for r in results) / len(results) if results else 0
+    
+    print(f"Files processed: {len(results)}")
+    print(f"Average WER: {avg_wer:.2f}%")
+    print(f"Average CER: {avg_cer:.2f}%")
+    print("="*80)
+
+def main():
+    """Main entry point."""
+    parser = argparse.ArgumentParser(description='ASR Pipeline with Whisper')
+    parser.add_argument('--dataset', type=str, default='Dev', 
+                       help='Dataset to use: Dev, Train, or Eval')
+    parser.add_argument('--file', type=str, default=None,
+                       help='Specific audio file to process')
+    parser.add_argument('--batch', type=int, default=5,
+                       help='Number of files to process in batch mode')
+    parser.add_argument('--no-timestamps', action='store_true',
+                       help='Disable timestamp display')
+    
+    args = parser.parse_args()
+    
+    print("="*80)
+    print("ASR Pipeline with Whisper")
+    print("="*80)
+    print(f"Phase: {config.PHASE}")
+    print(f"Dataset: {args.dataset}")
+    print(f"Whisper Model: {config.WHISPER_MODEL}")
+    print("="*80)
+    
+    if not setup_drive_access():
+        print("Error: Could not set up Google Drive access")
+        if not is_colab():
+            print("\nFor Replit: Make sure Google Drive integration is connected")
+            print("For Colab: Make sure Drive is mounted")
+        sys.exit(1)
+    
+    audio_dir = config.get_audio_path(args.dataset)
+    transcript_dir = config.get_transcript_path(args.dataset)
+    
+    if not audio_dir or not transcript_dir:
+        print("Error: Could not determine data paths")
+        print("Make sure you're running in Colab with Drive mounted or in Replit with Drive integration")
+        sys.exit(1)
+    
+    print(f"\nAudio directory: {audio_dir}")
+    print(f"Transcript directory: {transcript_dir}")
+    
+    show_timestamps = not args.no_timestamps
+    
+    if args.file:
+        audio_path = os.path.join(audio_dir, args.file)
+        if not os.path.exists(audio_path):
+            print(f"Error: Audio file not found: {audio_path}")
+            sys.exit(1)
+        run_single_file(audio_path, transcript_dir, show_timestamps=show_timestamps)
+    else:
+        run_batch(audio_dir, transcript_dir, limit=args.batch, show_timestamps=show_timestamps)
+
+if __name__ == "__main__":
+    main()
