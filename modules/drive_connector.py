@@ -26,6 +26,13 @@ def setup_drive_access():
     """
     if is_colab():
         print("Detected Colab environment")
+        
+        # Check if Drive is already mounted
+        if os.path.exists('/content/drive/MyDrive'):
+            print("Google Drive already mounted")
+            return True
+        
+        # Try to mount if not already mounted
         try:
             from google.colab import drive
             drive.mount('/content/drive', force_remount=False)
@@ -33,6 +40,9 @@ def setup_drive_access():
             return True
         except Exception as e:
             print(f"Error mounting Google Drive in Colab: {e}")
+            print("Please make sure you've mounted Drive in your Colab notebook first:")
+            print("  from google.colab import drive")
+            print("  drive.mount('/content/drive')")
             return False
     
     elif is_replit():
