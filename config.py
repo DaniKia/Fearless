@@ -50,7 +50,7 @@ def get_audio_path(dataset=DATASET):
     """Get path to audio segments for ASR_track2."""
     root = get_root_path()
     if is_colab():
-        return f"{root}/Audio/Segments/ASR_track2/{dataset}"
+        return f"{root}/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/{dataset}"
     else:
         audio_dir = os.path.join(root, "audio", dataset)
         os.makedirs(audio_dir, exist_ok=True)
@@ -60,7 +60,7 @@ def get_transcript_path(dataset=DATASET):
     """Get path to reference transcripts for ASR_track2."""
     root = get_root_path()
     if is_colab():
-        return f"{root}/Transcripts/ASR_track2/{dataset}"
+        return f"{root}/FSC_P3_Train_Dev/Transcripts/ASR_track2/{dataset}"
     else:
         transcript_dir = os.path.join(root, "transcripts", dataset)
         os.makedirs(transcript_dir, exist_ok=True)

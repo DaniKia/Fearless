@@ -38,11 +38,22 @@ Process audio segments from the Fearless Steps Challenge Phase 3 dataset, genera
 
 **Source**: Fearless Steps Challenge Phase 3  
 **Location**: Google Drive folder `Fearless_Steps_Challenge_Phase3`  
-**Current Focus**: Audio/Segments/ASR_track2/Dev with corresponding transcripts
+**Current Focus**: FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev with corresponding transcripts
 
 **Data Structure**:
-- Audio: 8kHz, 16-bit WAV files (short utterances)
-- Transcripts: Reference transcriptions in Transcripts/ASR_track2/Dev
+```
+Fearless_Steps_Challenge_Phase3/
+└── FSC_P3_Train_Dev/
+    ├── Audio/
+    │   └── Segments/
+    │       └── ASR_track2/
+    │           ├── Dev/     (8kHz, 16-bit WAV files - short utterances)
+    │           └── Train/
+    └── Transcripts/
+        └── ASR_track2/
+            ├── Dev/     (Reference transcriptions)
+            └── Train/
+```
 
 ## Usage
 
