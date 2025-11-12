@@ -73,4 +73,30 @@ def get_output_path():
     os.makedirs(output_dir, exist_ok=True)
     return output_dir
 
+def get_sid_audio_path(dataset=DATASET):
+    """Get path to audio segments for SID."""
+    root = get_root_path()
+    if is_colab():
+        return f"{root}/FSC_P3_Train_Dev/Audio/Segments/SID/{dataset}"
+    else:
+        audio_dir = os.path.join(root, "sid_audio", dataset)
+        os.makedirs(audio_dir, exist_ok=True)
+        return audio_dir
+
+def get_sid_label_path(dataset=DATASET):
+    """Get path to SID speaker labels."""
+    root = get_root_path()
+    if is_colab():
+        return f"{root}/FSC_P3_Train_Dev/Transcripts/SID"
+    else:
+        label_dir = os.path.join(root, "sid_labels")
+        os.makedirs(label_dir, exist_ok=True)
+        return label_dir
+
+def get_speaker_database_path():
+    """Get path to speaker database file."""
+    root = get_root_path()
+    return os.path.join(root, "speaker_database.pkl")
+
 WHISPER_MODEL = "tiny.en"
+SPEAKER_EMBEDDING_MODEL = "speechbrain/spkrec-ecapa-voxceleb"
