@@ -1,8 +1,23 @@
-"""
-Evaluation module for comparing transcripts and calculating metrics.
-"""
+"""Evaluation module for comparing transcripts and calculating metrics."""
+
+import re
 
 import jiwer
+
+
+_NORMALIZE_PATTERN = re.compile(r"[^a-z0-9\s]")
+
+
+def _normalize_text(text):
+    """Normalize text for fair metric comparison."""
+
+    if not text:
+        return ""
+
+    normalized = text.lower()
+    normalized = _NORMALIZE_PATTERN.sub(" ", normalized)
+    normalized = re.sub(r"\s+", " ", normalized)
+    return normalized.strip()
 
 def calculate_wer(reference, hypothesis):
     """
@@ -15,11 +30,14 @@ def calculate_wer(reference, hypothesis):
     Returns:
         WER as a percentage
     """
-    if not reference or not hypothesis:
+    reference_norm = _normalize_text(reference)
+    hypothesis_norm = _normalize_text(hypothesis)
+
+    if not reference_norm or not hypothesis_norm:
         return 100.0
-    
+
     try:
-        wer = jiwer.wer(reference, hypothesis) * 100
+        wer = jiwer.wer(reference_norm, hypothesis_norm) * 100
         return wer
     except Exception as e:
         print(f"Error calculating WER: {e}")
@@ -36,11 +54,14 @@ def calculate_cer(reference, hypothesis):
     Returns:
         CER as a percentage
     """
-    if not reference or not hypothesis:
+    reference_norm = _normalize_text(reference)
+    hypothesis_norm = _normalize_text(hypothesis)
+
+    if not reference_norm or not hypothesis_norm:
         return 100.0
-    
+
     try:
-        cer = jiwer.cer(reference, hypothesis) * 100
+        cer = jiwer.cer(reference_norm, hypothesis_norm) * 100
         return cer
     except Exception as e:
         print(f"Error calculating CER: {e}")
@@ -59,8 +80,14 @@ def get_alignment_details(reference, hypothesis):
         Dictionary with alignment details
     """
     try:
+        reference_norm = _normalize_text(reference)
+        hypothesis_norm = _normalize_text(hypothesis)
+
+        if not reference_norm or not hypothesis_norm:
+            return None
+
         if hasattr(jiwer, 'process_words'):
-            output = jiwer.process_words(reference, hypothesis)
+            output = jiwer.process_words(reference_norm, hypothesis_norm)
             return {
                 'substitutions': output.substitutions,
                 'deletions': output.deletions,
@@ -68,7 +95,7 @@ def get_alignment_details(reference, hypothesis):
                 'hits': output.hits
             }
         elif hasattr(jiwer, 'compute_measures'):
-            measures = jiwer.compute_measures(reference, hypothesis)
+            measures = jiwer.compute_measures(reference_norm, hypothesis_norm)
             return {
                 'substitutions': measures['substitutions'],
                 'deletions': measures['deletions'],
@@ -123,6 +150,7 @@ def display_comparison(audio_filename, reference, hypothesis, show_timestamps=Fa
     print("-" * 80)
     print(f"Word Error Rate (WER): {wer:.2f}%")
     print(f"Character Error Rate (CER): {cer:.2f}%")
+    print("(Metrics computed on normalized text: lowercased, punctuation removed.)")
     
     alignment = get_alignment_details(reference, hypothesis_text)
     if alignment:
