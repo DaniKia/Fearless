@@ -30,7 +30,7 @@ def get_local_cache_dir():
 def get_root_path():
     """Get the root path for the dataset based on environment."""
     if is_colab():
-        return f"/content/drive/MyDrive/FS/{PHASE}"
+        return f"/content/drive/MyDrive/{DRIVE_ROOT_FOLDER}"
     elif is_replit():
         return get_local_cache_dir()
     else:
