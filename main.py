@@ -14,19 +14,20 @@ from modules.whisper_transcriber import transcribe_audio
 from modules.evaluator import display_comparison
 import config
 
-def run_single_file(audio_path, transcript_dir, show_timestamps=True):
+def run_single_file(audio_path, transcript_dir, dataset='Dev', show_timestamps=True):
     """
     Process a single audio file.
     
     Args:
         audio_path: Path to audio file
         transcript_dir: Directory containing reference transcripts
+        dataset: Dataset name (Dev, Train, or Eval)
         show_timestamps: Whether to show timestamps in output
     """
     audio_filename = os.path.basename(audio_path)
     
     from modules.data_loader import load_reference_transcript
-    reference = load_reference_transcript(transcript_dir, audio_filename)
+    reference = load_reference_transcript(transcript_dir, audio_filename, dataset=dataset)
     
     if not reference:
         print(f"Error: No reference transcript found for {audio_filename}")
@@ -36,7 +37,7 @@ def run_single_file(audio_path, transcript_dir, show_timestamps=True):
     
     display_comparison(audio_filename, reference, hypothesis, show_timestamps=show_timestamps)
 
-def run_batch(audio_dir, transcript_dir, limit=5, show_timestamps=True):
+def run_batch(audio_dir, transcript_dir, limit=5, dataset='Dev', show_timestamps=True):
     """
     Process multiple audio files in batch.
     
@@ -44,9 +45,10 @@ def run_batch(audio_dir, transcript_dir, limit=5, show_timestamps=True):
         audio_dir: Directory containing audio files
         transcript_dir: Directory containing reference transcripts
         limit: Maximum number of files to process
+        dataset: Dataset name (Dev, Train, or Eval)
         show_timestamps: Whether to show timestamps in output
     """
-    pairs = get_audio_files_with_transcripts(audio_dir, transcript_dir, limit=limit)
+    pairs = get_audio_files_with_transcripts(audio_dir, transcript_dir, limit=limit, dataset=dataset)
     
     if not pairs:
         print("No audio files with transcripts found")
@@ -145,9 +147,9 @@ def main():
         if not os.path.exists(audio_path):
             print(f"Error: Audio file not found: {audio_path}")
             sys.exit(1)
-        run_single_file(audio_path, transcript_dir, show_timestamps=show_timestamps)
+        run_single_file(audio_path, transcript_dir, dataset=args.dataset, show_timestamps=show_timestamps)
     else:
-        run_batch(audio_dir, transcript_dir, limit=args.batch, show_timestamps=show_timestamps)
+        run_batch(audio_dir, transcript_dir, limit=args.batch, dataset=args.dataset, show_timestamps=show_timestamps)
 
 if __name__ == "__main__":
     main()

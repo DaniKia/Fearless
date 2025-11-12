@@ -7,6 +7,8 @@ import glob
 from pathlib import Path
 from modules.drive_connector import is_colab, list_files_in_folder
 
+_transcript_cache = {}
+
 def load_audio_file_list(audio_dir):
     """
     List all WAV files in the audio directory.
@@ -28,38 +30,78 @@ def load_audio_file_list(audio_dir):
         wav_files = [f for f in files if f.endswith('.wav')]
         return sorted(wav_files)
 
-def load_reference_transcript(transcript_path, audio_filename):
+def load_all_transcripts(transcript_dir, dataset='Dev'):
+    """
+    Load all transcripts from the consolidated transcript file.
+    
+    Args:
+        transcript_dir: Directory containing transcript file
+        dataset: Dataset name (Dev, Train, or Eval)
+        
+    Returns:
+        Dictionary mapping audio_id to transcript text
+    """
+    cache_key = f"{transcript_dir}_{dataset}"
+    
+    if cache_key in _transcript_cache:
+        return _transcript_cache[cache_key]
+    
+    transcript_file = os.path.join(
+        transcript_dir, 
+        f"fsc_p3_ASR_track2_transcriptions_{dataset}.text"
+    )
+    
+    transcripts = {}
+    
+    if not os.path.exists(transcript_file):
+        print(f"Warning: Transcript file not found: {transcript_file}")
+        return transcripts
+    
+    try:
+        with open(transcript_file, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                
+                parts = line.split(maxsplit=1)
+                if len(parts) == 2:
+                    audio_id, transcript = parts
+                    transcripts[audio_id] = transcript
+                elif len(parts) == 1:
+                    transcripts[parts[0]] = ""
+        
+        _transcript_cache[cache_key] = transcripts
+        print(f"Loaded {len(transcripts)} transcripts from {dataset} dataset")
+        
+    except Exception as e:
+        print(f"Error loading transcripts: {e}")
+    
+    return transcripts
+
+def load_reference_transcript(transcript_path, audio_filename, dataset='Dev'):
     """
     Load the reference transcript for a given audio file.
     
     Args:
         transcript_path: Directory containing transcript files
         audio_filename: Name of the audio file (to find matching transcript)
+        dataset: Dataset name (Dev, Train, or Eval)
         
     Returns:
         String containing the reference transcript, or None if not found
     """
     base_name = Path(audio_filename).stem
     
-    txt_file = os.path.join(transcript_path, f"{base_name}.txt")
-    json_file = os.path.join(transcript_path, f"{base_name}.json")
+    transcripts = load_all_transcripts(transcript_path, dataset)
     
-    if os.path.exists(txt_file):
-        with open(txt_file, 'r', encoding='utf-8') as f:
-            return f.read().strip()
+    if base_name in transcripts:
+        return transcripts[base_name]
     
-    elif os.path.exists(json_file):
-        import json
-        with open(json_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            if isinstance(data, dict):
-                return data.get('text', data.get('transcript', str(data)))
-            return str(data)
-    
-    print(f"Warning: No transcript found for {audio_filename}")
+    print(f"Warning: No transcript found for {audio_filename} (ID: {base_name})")
     return None
 
-def get_audio_files_with_transcripts(audio_dir, transcript_dir, limit=None):
+def get_audio_files_with_transcripts(audio_dir, transcript_dir, limit=None, dataset='Dev'):
     """
     Get list of audio files that have corresponding transcripts.
     
@@ -67,6 +109,7 @@ def get_audio_files_with_transcripts(audio_dir, transcript_dir, limit=None):
         audio_dir: Directory with audio files
         transcript_dir: Directory with transcript files
         limit: Maximum number of files to return (None for all)
+        dataset: Dataset name (Dev, Train, or Eval)
         
     Returns:
         List of tuples: (audio_path, reference_transcript)
@@ -77,13 +120,15 @@ def get_audio_files_with_transcripts(audio_dir, transcript_dir, limit=None):
         print("No audio files found")
         return []
     
+    transcripts = load_all_transcripts(transcript_dir, dataset)
+    
     pairs = []
     for audio_path in audio_files:
         audio_filename = os.path.basename(audio_path)
-        transcript = load_reference_transcript(transcript_dir, audio_filename)
+        base_name = Path(audio_filename).stem
         
-        if transcript:
-            pairs.append((audio_path, transcript))
+        if base_name in transcripts:
+            pairs.append((audio_path, transcripts[base_name]))
         
         if limit and len(pairs) >= limit:
             break
