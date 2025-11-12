@@ -93,25 +93,38 @@ class SpeakerIdentifier:
             self.load_model()
         
         speaker_database = {}
-        total_speakers = len(speaker_files_dict)
-        
+        speaker_items = list(speaker_files_dict.items())
+        total_speakers = len(speaker_items)
+        total_audio_files = sum(len(files) for _, files in speaker_items)
+
         print(f"\n{'='*60}")
         print(f"Enrolling {total_speakers} speakers...")
         print(f"{'='*60}\n")
-        
-        for speaker_id, audio_files in tqdm(speaker_files_dict.items(), desc="Enrolling speakers"):
-            embeddings = []
-            
-            for audio_path in audio_files:
-                embedding = self.extract_embedding(audio_path)
-                if embedding is not None:
-                    embeddings.append(embedding)
-            
-            if embeddings:
-                avg_embedding = np.mean(embeddings, axis=0)
-                speaker_database[speaker_id] = avg_embedding
-            else:
-                print(f"Warning: No valid embeddings for speaker {speaker_id}")
+
+        speaker_bar = tqdm(total=total_speakers, desc="Enrolling speakers")
+        audio_bar = tqdm(total=total_audio_files, desc="Audio files processed", leave=False)
+
+        try:
+            for speaker_id, audio_files in speaker_items:
+                embeddings = []
+
+                for audio_path in audio_files:
+                    embedding = self.extract_embedding(audio_path)
+                    if embedding is not None:
+                        embeddings.append(embedding)
+                    audio_bar.update(1)
+
+                if embeddings:
+                    avg_embedding = np.mean(embeddings, axis=0)
+                    speaker_database[speaker_id] = avg_embedding
+                else:
+                    print(f"Warning: No valid embeddings for speaker {speaker_id}")
+
+                speaker_bar.update(1)
+                speaker_bar.set_postfix({"last_speaker": speaker_id})
+        finally:
+            speaker_bar.close()
+            audio_bar.close()
         
         self.speaker_database = speaker_database
         

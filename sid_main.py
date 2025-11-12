@@ -24,7 +24,7 @@ def enroll_speakers(dataset='Train'):
     
     audio_dir = config.get_sid_audio_path(dataset)
     label_dir = config.get_sid_label_path(dataset)
-    database_path = config.get_speaker_database_path()
+    database_path = config.get_speaker_database_path(dataset=dataset, audio_dir=audio_dir)
     
     print(f"Audio directory: {audio_dir}")
     print(f"Label directory: {label_dir}")
@@ -62,7 +62,7 @@ def identify_single_file(audio_path, label_dir, dataset='Dev'):
         print(f"Error: No reference label found for {audio_filename}")
         return
     
-    database_path = config.get_speaker_database_path()
+    database_path = config.get_speaker_database_path(dataset=dataset)
     if not os.path.exists(database_path):
         print(f"Error: Speaker database not found at {database_path}")
         print("Please run enrollment first: python sid_main.py --enroll")
@@ -88,7 +88,7 @@ def identify_batch(audio_dir, label_dir, limit=5, dataset='Dev'):
         limit: Maximum number of files to process
         dataset: Dataset name
     """
-    database_path = config.get_speaker_database_path()
+    database_path = config.get_speaker_database_path(dataset=dataset)
     if not os.path.exists(database_path):
         print(f"Error: Speaker database not found at {database_path}")
         print("Please run enrollment first: python sid_main.py --enroll")
