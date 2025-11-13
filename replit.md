@@ -137,6 +137,10 @@ drive.mount('/content/drive')
 !python sid_main.py --batch 5                           # Test on 5 files
 !python sid_main.py --dataset Train --batch 10          # Test on 10 files from Train
 
+# Step 3: Analyze errors with confusion matrix
+!python sid_main.py --batch 1000 --confusion-matrix    # Show top 20 most-confused speaker pairs
+!python sid_main.py --batch 100 --confusion-matrix     # Smaller batch for quick analysis
+
 # ============ COMBINED ASR + SID ============
 # Note: Requires speaker enrollment first
 !python combined_main.py --file fsc_p3_ASR_track2_dev_0018.wav
@@ -178,6 +182,15 @@ For actual data processing, use Google Colab where your Phase 3 dataset is acces
 - requests
 
 ## Recent Changes
+
+**2025-11-13**: Confusion Matrix Analysis for Speaker Identification
+- **Added --confusion-matrix flag** to sid_main.py for detailed error analysis
+  - Shows top 20 most-confused speaker pairs (e.g., "FIDO1 confused as NSCTM: 45 times")
+  - Usage: `!python sid_main.py --batch 1000 --confusion-matrix`
+- **Removed speaker limit** from per-speaker accuracy display
+  - Previously only showed stats when ≤20 speakers, now shows all speakers
+  - Helps diagnose accuracy issues on a per-speaker basis
+- **Modular design**: Confusion matrix functions in sid_evaluator.py are generic and reusable for ASR or other modules
 
 **2025-11-13**: Auto-Detection for ASR_track2 and SID Speaker Labels
 - **Added automatic dataset type detection**: System now automatically identifies ASR_track2 vs SID datasets
