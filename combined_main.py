@@ -7,7 +7,7 @@ import os
 import sys
 import argparse
 import config
-from modules.data_loader import load_reference_transcript, load_sid_label, get_audio_files_with_transcripts
+from modules.data_loader import load_reference_transcript, load_speaker_label_auto, get_audio_files_with_transcripts
 from modules.whisper_transcriber import transcribe_audio
 from modules.evaluator import calculate_wer
 from modules.speaker_identifier import SpeakerIdentifier
@@ -19,18 +19,19 @@ def process_single_file(audio_path, transcript_dir, label_dir, dataset='Dev', wh
     Args:
         audio_path: Path to audio file
         transcript_dir: Directory containing ASR transcripts
-        label_dir: Directory containing SID labels
+        label_dir: Directory containing SID labels (not used, kept for compatibility)
         dataset: Dataset name
         whisper_model: Whisper model name (optional)
     """
     audio_filename = os.path.basename(audio_path)
+    audio_dir = os.path.dirname(audio_path)
     
     print("\n" + "="*80)
     print(f"File: {audio_filename}")
     print("="*80)
     
     reference_transcript = load_reference_transcript(transcript_dir, audio_filename, dataset=dataset)
-    reference_speaker = load_sid_label(label_dir, audio_filename, dataset=dataset)
+    reference_speaker = load_speaker_label_auto(audio_dir, audio_filename, dataset=dataset)
     
     if not reference_transcript:
         print(f"Warning: No reference transcript found")
@@ -127,7 +128,7 @@ def process_batch(audio_dir, transcript_dir, label_dir, limit=5, dataset='Dev', 
         reference_speaker = None
         
         if use_sid:
-            reference_speaker = load_sid_label(label_dir, audio_filename, dataset=dataset)
+            reference_speaker = load_speaker_label_auto(audio_dir, audio_filename, dataset=dataset)
             if reference_speaker:
                 result = identifier.identify_speaker(audio_path, top_k=1)
                 if result:

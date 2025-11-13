@@ -123,6 +123,76 @@ def find_sid_label_file(label_dir=None, dataset=DATASET):
 
     return os.path.join(label_dir, base_name)
 
+def get_asr_track2_speaker_label_path(dataset=DATASET):
+    """Get path to ASR_track2 speaker labels (same directory as transcripts)."""
+    return get_transcript_path(dataset)
+
+def get_asr_track2_speaker_label_basename(dataset=DATASET):
+    """Return the base filename for ASR_track2 speaker labels without extension."""
+    return f"fsc_p3_ASR_track2_uttID2spkID_{dataset}"
+
+def find_asr_track2_speaker_label_file(label_dir=None, dataset=DATASET):
+    """
+    Locate the ASR_track2 speaker label file, accounting for optional extensions.
+
+    Args:
+        label_dir: Directory containing ASR_track2 label files. Defaults to configured path.
+        dataset: Dataset name (Dev, Train, or Eval).
+
+    Returns:
+        Full path to the ASR_track2 speaker label file.
+    """
+    if label_dir is None:
+        label_dir = get_asr_track2_speaker_label_path(dataset)
+
+    base_name = get_asr_track2_speaker_label_basename(dataset)
+
+    for suffix in (".text", ".txt", ".TXT", ""):
+        candidate = os.path.join(label_dir, base_name + suffix)
+        if os.path.exists(candidate):
+            return candidate
+
+    return os.path.join(label_dir, base_name + ".text")
+
+def detect_dataset_info_from_path(audio_path):
+    """
+    Detect dataset type (ASR_track2 or SID) and split (Dev/Train/Eval) from audio path.
+    Works with both Colab paths and local cache paths.
+    
+    Args:
+        audio_path: Full path to audio directory or file
+        
+    Returns:
+        Tuple of (dataset_type, dataset_split)
+        dataset_type: 'ASR_track2' or 'SID' (defaults to 'ASR_track2' if ambiguous)
+        dataset_split: 'Dev', 'Train', or 'Eval' (defaults to 'Dev' if not found)
+    """
+    path_str = str(audio_path)
+    
+    # Detect dataset type from path patterns
+    dataset_type = 'ASR_track2'  # Default to ASR_track2
+    
+    # Check for SID indicators first (more specific)
+    if '/SID/' in path_str or '\\SID\\' in path_str or '/sid_audio/' in path_str or '\\sid_audio\\' in path_str:
+        dataset_type = 'SID'
+    # Check for ASR_track2 indicators
+    elif '/ASR_track2/' in path_str or '\\ASR_track2\\' in path_str:
+        dataset_type = 'ASR_track2'
+    # Local cache pattern: /audio/ (not sid_audio) defaults to ASR_track2
+    elif '/audio/' in path_str or '\\audio\\' in path_str:
+        # Make sure it's not sid_audio
+        if 'sid_audio' not in path_str.lower():
+            dataset_type = 'ASR_track2'
+    
+    # Detect dataset split
+    dataset_split = 'Dev'  # Default to Dev
+    for split in ['Dev', 'Train', 'Eval']:
+        if f'/{split}/' in path_str or f'\\{split}\\' in path_str or path_str.endswith(split):
+            dataset_split = split
+            break
+    
+    return dataset_type, dataset_split
+
 def get_speaker_database_path():
     """
     Get path to speaker database file.
