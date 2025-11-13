@@ -79,7 +79,7 @@ def identify_single_file(audio_path, label_dir, dataset='Dev'):
         predicted_speaker, similarity = result
         display_comparison(audio_filename, reference_speaker, predicted_speaker, similarity)
 
-def identify_batch(audio_dir, label_dir, limit=5, dataset='Dev', show_confusion_matrix=False):
+def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusion_matrix=False):
     """
     Identify speakers for multiple audio files.
     
@@ -154,10 +154,14 @@ Examples:
   # Identify speaker from single file
   python sid_main.py --file fsc_p3_SID_dev_0010.wav
   
-  # Test identification on 5 files from Dev set
-  python sid_main.py --batch 5
+  # Process all files in Dev set
+  python sid_main.py --dataset Dev
   
-  # Test identification on 10 files from Train set
+  # Process all files with confusion matrix
+  python sid_main.py --dataset Dev --confusion-matrix
+  
+  # Test identification on specific number of files
+  python sid_main.py --batch 5
   python sid_main.py --dataset Train --batch 10
         """
     )
@@ -177,8 +181,8 @@ Examples:
     parser.add_argument(
         '--batch',
         type=int,
-        default=5,
-        help='Number of files to identify for testing (default: 5). Used without --enroll flag.'
+        default=None,
+        help='Number of files to identify for testing. If not specified, processes all files in dataset. Used without --enroll flag.'
     )
     
     parser.add_argument(
