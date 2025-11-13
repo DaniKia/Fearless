@@ -101,8 +101,19 @@ class SpeakerIdentifier:
         print(f"Enrolling {total_speakers} speakers...")
         print(f"{'='*60}\n")
 
-        speaker_bar = tqdm(total=total_speakers, desc="Enrolling speakers")
-        audio_bar = tqdm(total=total_audio_files, desc="Audio files processed", leave=False)
+        speaker_bar = tqdm(
+            total=total_speakers,
+            desc="Enrolling speakers",
+            position=0,
+            dynamic_ncols=True,
+        )
+        audio_bar = tqdm(
+            total=total_audio_files,
+            desc="Audio files processed",
+            position=1,
+            dynamic_ncols=True,
+            leave=True,
+        )
 
         try:
             for speaker_id, audio_files in speaker_items:
