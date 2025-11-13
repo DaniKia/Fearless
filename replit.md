@@ -187,9 +187,9 @@ For actual data processing, use Google Colab where your Phase 3 dataset is acces
 - **Fixed calculate_wer return type**: Now returns `(WER, CER)` tuple
   - Resolves `TypeError: cannot unpack non-iterable float` in combined pipeline
   - Updated all callers (display_comparison, combined_main.py)
-- **Added speaker progress logging**: Shows `[1/218] Speaker: CAPCOM1 (125 files)`
+- **Added speaker progress logging**: Progress bar description updates to show `[1/218] CAPCOM1 (125 files)`
   - Helps understand slow/fast enrollment pattern (speakers with more files take longer)
-  - Removed distracting speaker name from progress bar postfix
+  - Updates on same line without spamming new lines
 
 **2025-11-13**: Optimized SID Enrollment with GPU Batch Processing
 - Replaced ineffective threading with GPU batch processing

@@ -112,7 +112,7 @@ class SpeakerIdentifier:
             for speaker_id, audio_files in speaker_files_dict.items():
                 speaker_count += 1
                 num_files = len(audio_files)
-                print(f"\n[{speaker_count}/{total_speakers}] Speaker: {speaker_id} ({num_files} files)")
+                pbar.set_description(f"[{speaker_count}/{total_speakers}] {speaker_id} ({num_files} files)")
                 
                 embeddings = self._process_files_in_batches(audio_files, pbar)
                 

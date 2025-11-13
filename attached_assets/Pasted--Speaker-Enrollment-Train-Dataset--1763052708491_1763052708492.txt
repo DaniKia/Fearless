@@ -1,0 +1,64 @@
+
+============================================================
+Speaker Enrollment - Train Dataset
+============================================================
+
+Audio directory: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/SID/Train
+Label directory: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Transcripts/SID
+Database will be saved to: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/speaker_database.pkl
+
+Loaded 27336 SID labels from Train dataset
+Found 218 unique speakers
+Total audio files: 27336
+
+/usr/local/lib/python3.12/dist-packages/speechbrain/utils/torch_audio_backend.py:57: UserWarning: torchaudio._backend.list_audio_backends has been deprecated. This deprecation is part of a large refactoring effort to transition TorchAudio into a maintenance phase. The decoding and encoding capabilities of PyTorch for both audio and video are being consolidated into TorchCodec. Please see https://github.com/pytorch/audio/issues/3902 for more information. It will be removed from the 2.9 release. 
+  available_backends = torchaudio.list_audio_backends()
+/content/Fearless/Fearless/Fearless/Fearless/Fearless/modules/speaker_identifier.py:37: UserWarning: Module 'speechbrain.pretrained' was deprecated, redirecting to 'speechbrain.inference'. Please update your script. This is a change from SpeechBrain 1.0. See: https://github.com/speechbrain/speechbrain/releases/tag/v1.0.0
+  from speechbrain.pretrained import EncoderClassifier
+Loading speaker embedding model: speechbrain/spkrec-ecapa-voxceleb
+Using device: cuda
+/usr/local/lib/python3.12/dist-packages/speechbrain/utils/torch_audio_backend.py:57: UserWarning: torchaudio._backend.list_audio_backends has been deprecated. This deprecation is part of a large refactoring effort to transition TorchAudio into a maintenance phase. The decoding and encoding capabilities of PyTorch for both audio and video are being consolidated into TorchCodec. Please see https://github.com/pytorch/audio/issues/3902 for more information. It will be removed from the 2.9 release. 
+  available_backends = torchaudio.list_audio_backends()
+/usr/local/lib/python3.12/dist-packages/speechbrain/utils/autocast.py:188: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  wrapped_fwd = torch.cuda.amp.custom_fwd(fwd, cast_inputs=cast_inputs)
+Model loaded successfully!
+
+============================================================
+Enrolling 218 speakers from 27336 audio files
+Using batch size: 32
+============================================================
+
+Processing audio files:   0% 0/27336 [00:00<?, ?file/s]
+[1/218] Speaker: FD1 (2862 files)
+Processing audio files:  10% 2848/27336 [03:35<02:17, 178.24file/s]
+[2/218] Speaker: BUZZ (2155 files)
+Processing audio files:  18% 5006/27336 [03:48<02:29, 149.00file/s]
+[3/218] Speaker: COMMCONTROL3 (122 files)
+Processing audio files:  19% 5139/27336 [03:49<02:22, 155.41file/s]
+[4/218] Speaker: EECOM5 (197 files)
+Processing audio files:  20% 5331/27336 [03:50<02:03, 178.82file/s]
+[5/218] Speaker: EECOM3 (330 files)
+Processing audio files:  21% 5656/27336 [03:52<02:00, 180.37file/s]
+[6/218] Speaker: TRACK3 (18 files)
+Processing audio files:  21% 5684/27336 [03:52<02:06, 171.31file/s]
+[7/218] Speaker: FD3 (711 files)
+Processing audio files:  23% 6388/27336 [03:56<02:05, 166.49file/s]
+[8/218] Speaker: TELCOM1 (234 files)
+Processing audio files:  24% 6619/27336 [03:58<02:08, 161.83file/s]
+[9/218] Speaker: AFD3 (17 files)
+Processing audio files:  24% 6646/27336 [03:58<02:09, 159.32file/s]
+[10/218] Speaker: COLLINS (572 files)
+Processing audio files:  26% 7218/27336 [04:01<02:06, 159.64file/s]
+[11/218] Speaker: FIDO1 (650 files)
+Processing audio files:  29% 7858/27336 [04:05<01:52, 172.62file/s]
+[12/218] Speaker: NETWORK3 (592 files)
+Processing audio files:  31% 8444/27336 [04:08<01:49, 171.91file/s]
+[13/218] Speaker: GNN1 (137 files)
+Processing audio files:  31% 8588/27336 [04:09<01:45, 178.35file/s]
+[14/218] Speaker: FIDO3 (251 files)
+Processing audio files:  32% 8848/27336 [04:11<01:35, 194.54file/s]
+[15/218] Speaker: NETWORK7 (89 files)
+Processing audio files:  33% 8937/27336 [04:11<01:37, 188.09file/s]
+[16/218] Speaker: FAO1 (200 files)
+Processing audio files:  33% 9129/27336 [04:12<01:41, 179.68file/s]
+[17/218] Sp
