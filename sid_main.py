@@ -11,12 +11,13 @@ from modules.data_loader import group_audio_by_speaker, get_sid_files_with_label
 from modules.speaker_identifier import SpeakerIdentifier
 from modules.sid_evaluator import display_comparison, display_batch_summary
 
-def enroll_speakers(dataset='Train'):
+def enroll_speakers(dataset='Train', num_workers=8):
     """
     Enroll speakers from the training dataset.
     
     Args:
         dataset: Dataset to use for enrollment (default: Train)
+        num_workers: Number of parallel workers (default: 8)
     """
     print(f"\n{'='*60}")
     print(f"Speaker Enrollment - {dataset} Dataset")
@@ -40,7 +41,7 @@ def enroll_speakers(dataset='Train'):
     total_files = sum(len(files) for files in speaker_files.values())
     print(f"Total audio files: {total_files}\n")
     
-    identifier = SpeakerIdentifier()
+    identifier = SpeakerIdentifier(num_workers=num_workers)
     identifier.enroll_speakers(speaker_files, save_path=database_path)
     
     print(f"\nEnrollment complete! Database saved to: {database_path}")
@@ -177,10 +178,17 @@ Examples:
         help='Dataset to use (default: Dev)'
     )
     
+    parser.add_argument(
+        '--workers',
+        type=int,
+        default=8,
+        help='Number of parallel workers for enrollment (default: 8)'
+    )
+    
     args = parser.parse_args()
     
     if args.enroll:
-        enroll_speakers(dataset=args.dataset)
+        enroll_speakers(dataset=args.dataset, num_workers=args.workers)
     elif args.file:
         audio_dir = config.get_sid_audio_path(args.dataset)
         label_dir = config.get_sid_label_path(args.dataset)

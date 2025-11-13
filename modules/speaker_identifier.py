@@ -9,22 +9,27 @@ import numpy as np
 import pickle
 import soundfile as sf
 from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
 import config
 
 class SpeakerIdentifier:
     """Speaker identification system with enrollment and prediction."""
     
-    def __init__(self, model_name=None):
+    def __init__(self, model_name=None, num_workers=8):
         """
         Initialize the speaker identifier.
         
         Args:
             model_name: Name of the embedding model (default from config)
+            num_workers: Number of parallel workers for enrollment (default: 8)
         """
         self.model_name = model_name or config.SPEAKER_EMBEDDING_MODEL
         self.model = None
         self.speaker_database = None
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.num_workers = num_workers
+        self.lock = threading.Lock()
         
     def load_model(self):
         """Load the pre-trained embedding model."""
@@ -81,6 +86,7 @@ class SpeakerIdentifier:
     def enroll_speakers(self, speaker_files_dict, save_path=None):
         """
         Enroll speakers by creating averaged embeddings from their audio files.
+        Uses parallel processing for faster enrollment.
         
         Args:
             speaker_files_dict: Dictionary mapping speaker_id to list of audio paths
@@ -94,24 +100,27 @@ class SpeakerIdentifier:
         
         speaker_database = {}
         total_speakers = len(speaker_files_dict)
+        total_files = sum(len(files) for files in speaker_files_dict.values())
         
         print(f"\n{'='*60}")
-        print(f"Enrolling {total_speakers} speakers...")
+        print(f"Enrolling {total_speakers} speakers from {total_files} audio files")
+        print(f"Using {self.num_workers} parallel workers")
         print(f"{'='*60}\n")
         
-        for speaker_id, audio_files in tqdm(speaker_files_dict.items(), desc="Enrolling speakers"):
-            embeddings = []
-            
-            for audio_path in audio_files:
-                embedding = self.extract_embedding(audio_path)
-                if embedding is not None:
-                    embeddings.append(embedding)
-            
-            if embeddings:
-                avg_embedding = np.mean(embeddings, axis=0)
-                speaker_database[speaker_id] = avg_embedding
-            else:
-                print(f"Warning: No valid embeddings for speaker {speaker_id}")
+        current_speaker = {"name": ""}
+        
+        with tqdm(total=total_files, desc="Processing audio files", unit="file") as pbar:
+            for speaker_id, audio_files in speaker_files_dict.items():
+                current_speaker["name"] = speaker_id
+                pbar.set_postfix_str(f"Speaker: {speaker_id}")
+                
+                embeddings = self._process_files_parallel(audio_files, pbar)
+                
+                if embeddings:
+                    avg_embedding = np.mean(embeddings, axis=0)
+                    speaker_database[speaker_id] = avg_embedding
+                else:
+                    print(f"\nWarning: No valid embeddings for speaker {speaker_id}")
         
         self.speaker_database = speaker_database
         
@@ -124,6 +133,32 @@ class SpeakerIdentifier:
         print(f"{'='*60}\n")
         
         return speaker_database
+    
+    def _process_files_parallel(self, audio_files, pbar):
+        """
+        Process audio files in parallel and extract embeddings.
+        
+        Args:
+            audio_files: List of audio file paths
+            pbar: Progress bar to update
+            
+        Returns:
+            List of embeddings
+        """
+        embeddings = []
+        
+        with ThreadPoolExecutor(max_workers=self.num_workers) as executor:
+            future_to_file = {executor.submit(self.extract_embedding, audio_path): audio_path 
+                            for audio_path in audio_files}
+            
+            for future in as_completed(future_to_file):
+                embedding = future.result()
+                if embedding is not None:
+                    with self.lock:
+                        embeddings.append(embedding)
+                pbar.update(1)
+        
+        return embeddings
     
     def save_database(self, save_path):
         """Save speaker database to file."""
