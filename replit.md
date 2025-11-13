@@ -43,10 +43,12 @@ Process audio segments from the Fearless Steps Challenge Phase 3 dataset to:
 
 **SID Pipeline (sid_main.py)**
 - Speaker enrollment from Train set (~200 speakers)
+- GPU batch processing for fast enrollment (~1.5-2.5 hours vs 96+ hours)
 - Speaker identification using cosine similarity
 - Pre-trained SpeechBrain ECAPA embeddings
 - Accuracy metrics and confusion matrix
 - Closed-set identification (identifies among known speakers)
+- Configurable batch size for enrollment (default: 16 files per GPU batch)
 
 **Combined Pipeline (combined_main.py)**
 - Simultaneous ASR + SID processing
@@ -122,8 +124,13 @@ drive.mount('/content/drive')
 !python main.py --file audio.wav --whisper-model large-v3
 
 # ============ SID PIPELINE ============
-# Step 1: Enroll speakers (ONE-TIME, ~10-30 min)
+# Step 1: Enroll speakers (ONE-TIME, ~1.5-2.5 hours with GPU)
 !python sid_main.py --enroll --dataset Train
+
+# Custom batch size for enrollment (tune based on GPU memory)
+!python sid_main.py --enroll --dataset Train --batch-size 16  # Default
+!python sid_main.py --enroll --dataset Train --batch-size 32  # Larger batches (more GPU memory)
+!python sid_main.py --enroll --dataset Train --batch-size 8   # Smaller batches (less GPU memory)
 
 # Step 2: Identify speakers
 !python sid_main.py --file fsc_p3_SID_dev_0010.wav     # Single file
@@ -171,6 +178,14 @@ For actual data processing, use Google Colab where your Phase 3 dataset is acces
 - requests
 
 ## Recent Changes
+
+**2025-11-13**: Optimized SID Enrollment with GPU Batch Processing
+- Replaced ineffective threading with GPU batch processing
+- Processes 16 audio files per batch using `encode_batch()` for true GPU parallelism
+- Expected speedup: 50-60x faster (96+ hours → ~1.5-2.5 hours)
+- Clean single progress bar showing file-level progress with current speaker
+- Added `--batch-size` CLI flag (default: 16, tune based on GPU memory)
+- Fixed database path to save at root directory level
 
 **2025-11-12**: Speaker Identification (SID) Module Added
 - Created complete SID pipeline with speaker enrollment and identification

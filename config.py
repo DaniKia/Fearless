@@ -123,14 +123,15 @@ def find_sid_label_file(label_dir=None, dataset=DATASET):
 
     return os.path.join(label_dir, base_name)
 
-def get_speaker_database_path(dataset=DATASET, audio_dir=None):
-    """Get path to the speaker database file for a specific dataset."""
-    if audio_dir is None:
-        audio_dir = get_sid_audio_path(dataset)
-
-    os.makedirs(audio_dir, exist_ok=True)
-    filename = f"{dataset}speaker_database.pkl"
-    return os.path.join(audio_dir, filename)
+def get_speaker_database_path():
+    """
+    Get path to speaker database file.
+    Returns a single global database path (not dataset-specific).
+    The database contains all enrolled speakers from Train set,
+    used for identification across all datasets (Dev, Test, Eval).
+    """
+    root = get_root_path()
+    return os.path.join(root, "speaker_database.pkl")
 
 WHISPER_MODEL = "tiny.en"
 SPEAKER_EMBEDDING_MODEL = "speechbrain/spkrec-ecapa-voxceleb"

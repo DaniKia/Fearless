@@ -1,6 +1,6 @@
 """
 Speaker identification module using pre-trained embeddings.
-Uses pyannote.audio for speaker embedding extraction.
+Uses SpeechBrain ECAPA embeddings with batch processing for efficiency.
 """
 
 import os
@@ -9,27 +9,24 @@ import numpy as np
 import pickle
 import soundfile as sf
 from tqdm import tqdm
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import threading
 import config
 
 class SpeakerIdentifier:
     """Speaker identification system with enrollment and prediction."""
     
-    def __init__(self, model_name=None, num_workers=8):
+    def __init__(self, model_name=None, batch_size=16):
         """
         Initialize the speaker identifier.
         
         Args:
             model_name: Name of the embedding model (default from config)
-            num_workers: Number of parallel workers for enrollment (default: 8)
+            batch_size: Number of files to process per GPU batch (default: 16)
         """
         self.model_name = model_name or config.SPEAKER_EMBEDDING_MODEL
         self.model = None
         self.speaker_database = None
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.num_workers = num_workers
-        self.lock = threading.Lock()
+        self.batch_size = batch_size
         
     def load_model(self):
         """Load the pre-trained embedding model."""
@@ -86,7 +83,7 @@ class SpeakerIdentifier:
     def enroll_speakers(self, speaker_files_dict, save_path=None):
         """
         Enroll speakers by creating averaged embeddings from their audio files.
-        Uses parallel processing for faster enrollment.
+        Uses GPU batch processing for faster enrollment.
         
         Args:
             speaker_files_dict: Dictionary mapping speaker_id to list of audio paths
@@ -99,26 +96,20 @@ class SpeakerIdentifier:
             self.load_model()
         
         speaker_database = {}
-
         total_speakers = len(speaker_files_dict)
         total_files = sum(len(files) for files in speaker_files_dict.values())
         
-
         print(f"\n{'='*60}")
         print(f"Enrolling {total_speakers} speakers from {total_files} audio files")
-        print(f"Using {self.num_workers} parallel workers")
+        print(f"Using batch size: {self.batch_size}")
         print(f"{'='*60}\n")
-        
-        current_speaker = {"name": ""}
         
         with tqdm(total=total_files, desc="Processing audio files", unit="file") as pbar:
             for speaker_id, audio_files in speaker_files_dict.items():
-                current_speaker["name"] = speaker_id
                 pbar.set_postfix_str(f"Speaker: {speaker_id}")
                 
-                embeddings = self._process_files_parallel(audio_files, pbar)
+                embeddings = self._process_files_in_batches(audio_files, pbar)
                 
-
                 if embeddings:
                     avg_embedding = np.mean(embeddings, axis=0)
                     speaker_database[speaker_id] = avg_embedding
@@ -137,9 +128,9 @@ class SpeakerIdentifier:
         
         return speaker_database
     
-    def _process_files_parallel(self, audio_files, pbar):
+    def _process_files_in_batches(self, audio_files, pbar):
         """
-        Process audio files in parallel and extract embeddings.
+        Process audio files in batches using GPU batch processing.
         
         Args:
             audio_files: List of audio file paths
@@ -148,20 +139,68 @@ class SpeakerIdentifier:
         Returns:
             List of embeddings
         """
-        embeddings = []
+        if self.model is None:
+            self.load_model()
         
-        with ThreadPoolExecutor(max_workers=self.num_workers) as executor:
-            future_to_file = {executor.submit(self.extract_embedding, audio_path): audio_path 
-                            for audio_path in audio_files}
+        all_embeddings = []
+        
+        for i in range(0, len(audio_files), self.batch_size):
+            batch_files = audio_files[i:i + self.batch_size]
+            batch_audio = []
+            batch_lengths = []
+            valid_indices = []
             
-            for future in as_completed(future_to_file):
-                embedding = future.result()
-                if embedding is not None:
-                    with self.lock:
-                        embeddings.append(embedding)
-                pbar.update(1)
+            for idx, audio_path in enumerate(batch_files):
+                try:
+                    audio, sr = sf.read(audio_path)
+                    
+                    if len(audio.shape) > 1:
+                        audio = audio.mean(axis=1)
+                    
+                    batch_audio.append(torch.FloatTensor(audio))
+                    batch_lengths.append(len(audio))
+                    valid_indices.append(idx)
+                    
+                except Exception as e:
+                    print(f"\nWarning: Error loading {audio_path}: {e}")
+            
+            if not batch_audio:
+                pbar.update(len(batch_files))
+                continue
+            
+            max_length = max(batch_lengths)
+            padded_batch = []
+            for audio in batch_audio:
+                current_len = len(audio)
+                if current_len < max_length:
+                    padding = torch.zeros(max_length - current_len)
+                    audio = torch.cat([audio, padding])
+                elif current_len > max_length:
+                    audio = audio[:max_length]
+                padded_batch.append(audio)
+            
+            batch_tensor = torch.stack(padded_batch).to(self.device)
+            
+            relative_lengths = torch.tensor(batch_lengths, dtype=torch.float) / max_length
+            lengths_tensor = torch.clamp(relative_lengths, max=1.0).to(self.device)
+            
+            try:
+                with torch.no_grad():
+                    embeddings = self.model.encode_batch(batch_tensor, lengths_tensor)
+                    embeddings = embeddings.cpu().numpy()
+                    
+                    for emb in embeddings:
+                        all_embeddings.append(emb)
+                        
+            except Exception as e:
+                print(f"\nWarning: Error processing batch: {e}")
+            
+            pbar.update(len(batch_files))
+            
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
         
-        return embeddings
+        return all_embeddings
     
     def save_database(self, save_path):
         """Save speaker database to file."""

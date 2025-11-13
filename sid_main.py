@@ -11,13 +11,13 @@ from modules.data_loader import group_audio_by_speaker, get_sid_files_with_label
 from modules.speaker_identifier import SpeakerIdentifier
 from modules.sid_evaluator import display_comparison, display_batch_summary
 
-def enroll_speakers(dataset='Train', num_workers=8):
+def enroll_speakers(dataset='Train', batch_size=16):
     """
     Enroll speakers from the training dataset.
     
     Args:
         dataset: Dataset to use for enrollment (default: Train)
-        num_workers: Number of parallel workers (default: 8)
+        batch_size: Number of files to process per GPU batch (default: 16)
     """
     print(f"\n{'='*60}")
     print(f"Speaker Enrollment - {dataset} Dataset")
@@ -25,7 +25,7 @@ def enroll_speakers(dataset='Train', num_workers=8):
     
     audio_dir = config.get_sid_audio_path(dataset)
     label_dir = config.get_sid_label_path(dataset)
-    database_path = config.get_speaker_database_path(dataset=dataset, audio_dir=audio_dir)
+    database_path = config.get_speaker_database_path()
     
     print(f"Audio directory: {audio_dir}")
     print(f"Label directory: {label_dir}")
@@ -41,7 +41,7 @@ def enroll_speakers(dataset='Train', num_workers=8):
     total_files = sum(len(files) for files in speaker_files.values())
     print(f"Total audio files: {total_files}\n")
     
-    identifier = SpeakerIdentifier(num_workers=num_workers)
+    identifier = SpeakerIdentifier(batch_size=batch_size)
     identifier.enroll_speakers(speaker_files, save_path=database_path)
     
     print(f"\nEnrollment complete! Database saved to: {database_path}")
@@ -63,7 +63,7 @@ def identify_single_file(audio_path, label_dir, dataset='Dev'):
         print(f"Error: No reference label found for {audio_filename}")
         return
     
-    database_path = config.get_speaker_database_path(dataset=dataset)
+    database_path = config.get_speaker_database_path()
     if not os.path.exists(database_path):
         print(f"Error: Speaker database not found at {database_path}")
         print("Please run enrollment first: python sid_main.py --enroll")
@@ -89,7 +89,7 @@ def identify_batch(audio_dir, label_dir, limit=5, dataset='Dev'):
         limit: Maximum number of files to process
         dataset: Dataset name
     """
-    database_path = config.get_speaker_database_path(dataset=dataset)
+    database_path = config.get_speaker_database_path()
     if not os.path.exists(database_path):
         print(f"Error: Speaker database not found at {database_path}")
         print("Please run enrollment first: python sid_main.py --enroll")
@@ -179,16 +179,16 @@ Examples:
     )
     
     parser.add_argument(
-        '--workers',
+        '--batch-size',
         type=int,
-        default=8,
-        help='Number of parallel workers for enrollment (default: 8)'
+        default=16,
+        help='Number of files to process per GPU batch during enrollment (default: 16)'
     )
     
     args = parser.parse_args()
     
     if args.enroll:
-        enroll_speakers(dataset=args.dataset, num_workers=args.workers)
+        enroll_speakers(dataset=args.dataset, batch_size=args.batch_size)
     elif args.file:
         audio_dir = config.get_sid_audio_path(args.dataset)
         label_dir = config.get_sid_label_path(args.dataset)
