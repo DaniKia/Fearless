@@ -140,13 +140,16 @@ Examples:
   # Enroll speakers from Train dataset (one-time setup)
   python sid_main.py --enroll --dataset Train
   
+  # Enroll with custom GPU batch size (tune based on GPU memory)
+  python sid_main.py --enroll --dataset Train --batch-size 32
+  
   # Identify speaker from single file
   python sid_main.py --file fsc_p3_SID_dev_0010.wav
   
-  # Batch process 5 files from Dev set
+  # Test identification on 5 files from Dev set
   python sid_main.py --batch 5
   
-  # Batch process 10 files from Train set
+  # Test identification on 10 files from Train set
   python sid_main.py --dataset Train --batch 10
         """
     )
@@ -167,7 +170,7 @@ Examples:
         '--batch',
         type=int,
         default=5,
-        help='Number of files to process in batch mode (default: 5)'
+        help='Number of files to identify for testing (default: 5). Used without --enroll flag.'
     )
     
     parser.add_argument(
@@ -182,7 +185,7 @@ Examples:
         '--batch-size',
         type=int,
         default=16,
-        help='Number of files to process per GPU batch during enrollment (default: 16)'
+        help='GPU batch size for enrollment: how many audio files to process simultaneously (default: 16). Only used with --enroll flag. Increase for more GPU memory, decrease if you get OOM errors.'
     )
     
     args = parser.parse_args()

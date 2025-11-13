@@ -106,8 +106,6 @@ class SpeakerIdentifier:
         
         with tqdm(total=total_files, desc="Processing audio files", unit="file") as pbar:
             for speaker_id, audio_files in speaker_files_dict.items():
-                pbar.set_postfix_str(f"Speaker: {speaker_id}")
-                
                 embeddings = self._process_files_in_batches(audio_files, pbar)
                 
                 if embeddings:

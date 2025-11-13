@@ -38,7 +38,7 @@ def process_single_file(audio_path, transcript_dir, label_dir, dataset='Dev', wh
     if not reference_speaker:
         print(f"Warning: No reference speaker label found")
     
-    database_path = config.get_speaker_database_path(dataset=dataset)
+    database_path = config.get_speaker_database_path()
     if not os.path.exists(database_path):
         print(f"\nWarning: Speaker database not found at {database_path}")
         print("Run 'python sid_main.py --enroll' to create speaker database")
@@ -102,7 +102,7 @@ def process_batch(audio_dir, transcript_dir, label_dir, limit=5, dataset='Dev', 
         print("No audio files with transcripts found")
         return
     
-    database_path = config.get_speaker_database_path(dataset=dataset)
+    database_path = config.get_speaker_database_path()
     if not os.path.exists(database_path):
         print(f"\nWarning: Speaker database not found at {database_path}")
         print("Run 'python sid_main.py --enroll' to create speaker database")

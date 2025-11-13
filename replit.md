@@ -127,15 +127,15 @@ drive.mount('/content/drive')
 # Step 1: Enroll speakers (ONE-TIME, ~1.5-2.5 hours with GPU)
 !python sid_main.py --enroll --dataset Train
 
-# Custom batch size for enrollment (tune based on GPU memory)
-!python sid_main.py --enroll --dataset Train --batch-size 16  # Default
-!python sid_main.py --enroll --dataset Train --batch-size 32  # Larger batches (more GPU memory)
-!python sid_main.py --enroll --dataset Train --batch-size 8   # Smaller batches (less GPU memory)
+# Custom GPU batch size for enrollment (tune based on GPU memory)
+!python sid_main.py --enroll --dataset Train --batch-size 16  # Default (recommended)
+!python sid_main.py --enroll --dataset Train --batch-size 32  # Larger batches (needs more GPU memory)
+!python sid_main.py --enroll --dataset Train --batch-size 8   # Smaller batches (if you get OOM errors)
 
-# Step 2: Identify speakers
+# Step 2: Identify speakers (test accuracy)
 !python sid_main.py --file fsc_p3_SID_dev_0010.wav     # Single file
-!python sid_main.py --batch 5                           # Batch processing
-!python sid_main.py --dataset Train --batch 10          # From Train set
+!python sid_main.py --batch 5                           # Test on 5 files
+!python sid_main.py --dataset Train --batch 10          # Test on 10 files from Train
 
 # ============ COMBINED ASR + SID ============
 # Note: Requires speaker enrollment first
