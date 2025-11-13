@@ -73,6 +73,9 @@ class SpeakerIdentifier:
             with torch.no_grad():
                 embedding = self.model.encode_batch(audio_tensor)
                 embedding = embedding.squeeze().cpu().numpy()
+                
+                if embedding.ndim > 1:
+                    embedding = embedding.flatten()
             
             return embedding
             
@@ -104,8 +107,13 @@ class SpeakerIdentifier:
         print(f"Using batch size: {self.batch_size}")
         print(f"{'='*60}\n")
         
+        speaker_count = 0
         with tqdm(total=total_files, desc="Processing audio files", unit="file") as pbar:
             for speaker_id, audio_files in speaker_files_dict.items():
+                speaker_count += 1
+                num_files = len(audio_files)
+                print(f"\n[{speaker_count}/{total_speakers}] Speaker: {speaker_id} ({num_files} files)")
+                
                 embeddings = self._process_files_in_batches(audio_files, pbar)
                 
                 if embeddings:
@@ -188,6 +196,8 @@ class SpeakerIdentifier:
                     embeddings = embeddings.cpu().numpy()
                     
                     for emb in embeddings:
+                        if emb.ndim > 1:
+                            emb = emb.flatten()
                         all_embeddings.append(emb)
                         
             except Exception as e:
