@@ -134,12 +134,13 @@ drive.mount('/content/drive')
 
 # Step 2: Identify speakers (test accuracy)
 !python sid_main.py --file fsc_p3_SID_dev_0010.wav     # Single file
-!python sid_main.py --batch 5                           # Test on 5 files
+!python sid_main.py --dataset Dev                       # Process ALL files in Dev set
+!python sid_main.py --batch 5                           # Test on specific number (5 files)
 !python sid_main.py --dataset Train --batch 10          # Test on 10 files from Train
 
 # Step 3: Analyze errors with confusion matrix
-!python sid_main.py --batch 1000 --confusion-matrix    # Show top 20 most-confused speaker pairs
-!python sid_main.py --batch 100 --confusion-matrix     # Smaller batch for quick analysis
+!python sid_main.py --dataset Dev --confusion-matrix    # Process ALL Dev files with confusion matrix
+!python sid_main.py --batch 100 --confusion-matrix      # Process specific number with confusion matrix
 
 # ============ COMBINED ASR + SID ============
 # Note: Requires speaker enrollment first
@@ -186,10 +187,13 @@ For actual data processing, use Google Colab where your Phase 3 dataset is acces
 **2025-11-13**: Confusion Matrix Analysis for Speaker Identification
 - **Added --confusion-matrix flag** to sid_main.py for detailed error analysis
   - Shows top 20 most-confused speaker pairs (e.g., "FIDO1 confused as NSCTM: 45 times")
-  - Usage: `!python sid_main.py --batch 1000 --confusion-matrix`
+  - Usage: `!python sid_main.py --dataset Dev --confusion-matrix`
 - **Removed speaker limit** from per-speaker accuracy display
   - Previously only showed stats when ≤20 speakers, now shows all speakers
   - Helps diagnose accuracy issues on a per-speaker basis
+- **Changed default batch behavior**: When `--batch` is not specified, processes ALL files in dataset
+  - Previously defaulted to 5 files; now defaults to all files for better analysis
+  - Use `--batch N` to explicitly limit to N files for quick testing
 - **Modular design**: Confusion matrix functions in sid_evaluator.py are generic and reusable for ASR or other modules
 
 **2025-11-13**: Auto-Detection for ASR_track2 and SID Speaker Labels
