@@ -9,6 +9,8 @@ PHASE = "Phase3"
 DATASET = "Dev"
 DRIVE_ROOT_FOLDER = "Fearless_Steps_Challenge_Phase3"
 
+_SID_LABEL_SUFFIXES = ("", ".txt", ".TXT")
+
 def is_colab():
     """Check if running in Google Colab environment."""
     try:
@@ -93,10 +95,42 @@ def get_sid_label_path(dataset=DATASET):
         os.makedirs(label_dir, exist_ok=True)
         return label_dir
 
-def get_speaker_database_path():
-    """Get path to speaker database file."""
-    root = get_root_path()
-    return os.path.join(root, "speaker_database.pkl")
+def get_sid_label_basename(dataset=DATASET):
+    """Return the base filename for SID speaker labels without extension."""
+    return f"fsc_p3_SID_uttID2spkID_{dataset}"
+
+def find_sid_label_file(label_dir=None, dataset=DATASET):
+    """
+    Locate the SID label file, accounting for optional extensions used in the dataset.
+
+    Args:
+        label_dir: Directory containing SID label files. Defaults to configured path.
+        dataset: Dataset name (Dev, Train, or Eval).
+
+    Returns:
+        Full path to the SID label file. If no candidate exists on disk, returns the
+        path using the canonical filename without extension.
+    """
+    if label_dir is None:
+        label_dir = get_sid_label_path(dataset)
+
+    base_name = get_sid_label_basename(dataset)
+
+    for suffix in _SID_LABEL_SUFFIXES:
+        candidate = os.path.join(label_dir, base_name + suffix)
+        if os.path.exists(candidate):
+            return candidate
+
+    return os.path.join(label_dir, base_name)
+
+def get_speaker_database_path(dataset=DATASET, audio_dir=None):
+    """Get path to the speaker database file for a specific dataset."""
+    if audio_dir is None:
+        audio_dir = get_sid_audio_path(dataset)
+
+    os.makedirs(audio_dir, exist_ok=True)
+    filename = f"{dataset}speaker_database.pkl"
+    return os.path.join(audio_dir, filename)
 
 WHISPER_MODEL = "tiny.en"
 SPEAKER_EMBEDDING_MODEL = "speechbrain/spkrec-ecapa-voxceleb"

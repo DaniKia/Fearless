@@ -99,9 +99,11 @@ class SpeakerIdentifier:
             self.load_model()
         
         speaker_database = {}
+
         total_speakers = len(speaker_files_dict)
         total_files = sum(len(files) for files in speaker_files_dict.values())
         
+
         print(f"\n{'='*60}")
         print(f"Enrolling {total_speakers} speakers from {total_files} audio files")
         print(f"Using {self.num_workers} parallel workers")
@@ -116,6 +118,7 @@ class SpeakerIdentifier:
                 
                 embeddings = self._process_files_parallel(audio_files, pbar)
                 
+
                 if embeddings:
                     avg_embedding = np.mean(embeddings, axis=0)
                     speaker_database[speaker_id] = avg_embedding

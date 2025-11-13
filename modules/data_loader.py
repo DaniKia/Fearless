@@ -5,6 +5,8 @@ Data loader for ASR audio segments and reference transcripts.
 import os
 import glob
 from pathlib import Path
+
+import config
 from modules.drive_connector import is_colab, list_files_in_folder
 
 _transcript_cache = {}
@@ -152,13 +154,10 @@ def load_all_sid_labels(label_dir, dataset='Dev'):
     if cache_key in _sid_label_cache:
         return _sid_label_cache[cache_key]
     
-    label_file = os.path.join(
-        label_dir,
-        f"fsc_p3_SID_uttID2spkID_{dataset}"
-    )
-    
+    label_file = config.find_sid_label_file(label_dir=label_dir, dataset=dataset)
+
     labels = {}
-    
+
     if not os.path.exists(label_file):
         print(f"Warning: SID label file not found: {label_file}")
         return labels

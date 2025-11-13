@@ -17,11 +17,8 @@ def count_speakers(dataset='Dev'):
     Returns:
         Dictionary with speaker count and list of unique speakers
     """
-    label_file = os.path.join(
-        config.get_sid_label_path(dataset),
-        f"fsc_p3_SID_uttID2spkID_{dataset}"
-    )
-    
+    label_file = config.find_sid_label_file(dataset=dataset)
+
     if not os.path.exists(label_file):
         print(f"Error: Label file not found: {label_file}")
         return None
