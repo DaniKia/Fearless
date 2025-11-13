@@ -179,6 +179,20 @@ For actual data processing, use Google Colab where your Phase 3 dataset is acces
 
 ## Recent Changes
 
+**2025-11-13**: Auto-Detection for ASR_track2 and SID Speaker Labels
+- **Added automatic dataset type detection**: System now automatically identifies ASR_track2 vs SID datasets
+  - Detection works with both Google Colab paths (/ASR_track2/, /SID/) and local cache paths (/audio/, /sid_audio/)
+  - Detects dataset split (Dev/Train/Eval) from path structure
+- **ASR_track2 speaker label support**: Added dedicated label loading for ASR_track2 datasets
+  - ASR_track2 files have speaker labels in transcript directory (fsc_p3_ASR_track2_uttID2spkID_{Dataset}.text)
+  - SID files use existing SID label format (fsc_p3_SID_uttID2spkID_{Dataset})
+- **Unified label loading**: Combined pipeline now automatically loads matching labels based on audio source
+  - ASR_track2 audio → loads ASR_track2 speaker labels
+  - SID audio → loads SID speaker labels
+  - No manual label directory specification needed
+- **New config functions**: get_asr_track2_speaker_label_path(), find_asr_track2_speaker_label_file(), detect_dataset_info_from_path()
+- **New data_loader functions**: load_all_asr_track2_speaker_labels(), load_speaker_label_auto()
+
 **2025-11-13**: Critical Bug Fixes for SID and Combined Pipeline
 - **Fixed shape mismatch bug**: Embeddings now consistently 1D (192,) instead of (1,192)
   - Fixed both enrollment and identification embedding extraction
