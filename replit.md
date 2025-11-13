@@ -179,11 +179,22 @@ For actual data processing, use Google Colab where your Phase 3 dataset is acces
 
 ## Recent Changes
 
+**2025-11-13**: Critical Bug Fixes for SID and Combined Pipeline
+- **Fixed shape mismatch bug**: Embeddings now consistently 1D (192,) instead of (1,192)
+  - Fixed both enrollment and identification embedding extraction
+  - Resolves `ValueError: shapes (192,) and (1,192) not aligned` in cosine similarity
+  - **IMPORTANT**: Delete old `speaker_database.pkl` and re-enroll speakers!
+- **Fixed calculate_wer return type**: Now returns `(WER, CER)` tuple
+  - Resolves `TypeError: cannot unpack non-iterable float` in combined pipeline
+  - Updated all callers (display_comparison, combined_main.py)
+- **Added speaker progress logging**: Shows `[1/218] Speaker: CAPCOM1 (125 files)`
+  - Helps understand slow/fast enrollment pattern (speakers with more files take longer)
+  - Removed distracting speaker name from progress bar postfix
+
 **2025-11-13**: Optimized SID Enrollment with GPU Batch Processing
 - Replaced ineffective threading with GPU batch processing
 - Processes 16 audio files per batch using `encode_batch()` for true GPU parallelism
 - Expected speedup: 50-60x faster (96+ hours → ~1.5-2.5 hours)
-- Clean single progress bar showing file-level progress with current speaker
 - Added `--batch-size` CLI flag (default: 16, tune based on GPU memory)
 - Fixed database path to save at root directory level
 
@@ -222,9 +233,10 @@ For actual data processing, use Google Colab where your Phase 3 dataset is acces
 
 ### Complete SID Setup (First Time)
 1. Clone repo and mount Drive in Colab
-2. Count speakers: `!python utils.py --count-speakers --dataset Train`
-3. Enroll speakers: `!python sid_main.py --enroll --dataset Train` (creates speaker_database.pkl)
-4. Test on Dev set: `!python sid_main.py --batch 5`
+2. **Delete old database** (if exists): `!rm -f speaker_database.pkl`
+3. Count speakers: `!python utils.py --count-speakers --dataset Train`
+4. Enroll speakers: `!python sid_main.py --enroll --dataset Train` (creates speaker_database.pkl)
+5. Test on Dev set: `!python sid_main.py --batch 5`
 
 ### Regular Usage
 - **ASR only**: `!python main.py --file audio.wav`
