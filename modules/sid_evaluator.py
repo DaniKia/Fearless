@@ -90,14 +90,13 @@ def display_batch_summary(results):
     print(f"Overall Accuracy     : {accuracy:.2f}%")
     print("="*80)
     
-    if len(per_speaker_stats) <= 20:
-        print("\nPer-Speaker Accuracy:")
-        print("-"*80)
-        for speaker_id in sorted(per_speaker_stats.keys()):
-            stats = per_speaker_stats[speaker_id]
-            speaker_acc = (stats['correct'] / stats['total']) * 100
-            print(f"{speaker_id:20s}: {stats['correct']:3d}/{stats['total']:3d} ({speaker_acc:5.1f}%)")
-        print("="*80)
+    print("\nPer-Speaker Accuracy:")
+    print("-"*80)
+    for speaker_id in sorted(per_speaker_stats.keys()):
+        stats = per_speaker_stats[speaker_id]
+        speaker_acc = (stats['correct'] / stats['total']) * 100
+        print(f"{speaker_id:20s}: {stats['correct']:3d}/{stats['total']:3d} ({speaker_acc:5.1f}%)")
+    print("="*80)
 
 def create_confusion_matrix(predictions, references):
     """

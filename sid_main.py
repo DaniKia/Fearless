@@ -9,7 +9,7 @@ import argparse
 import config
 from modules.data_loader import group_audio_by_speaker, get_sid_files_with_labels, load_sid_label
 from modules.speaker_identifier import SpeakerIdentifier
-from modules.sid_evaluator import display_comparison, display_batch_summary
+from modules.sid_evaluator import display_comparison, display_batch_summary, create_confusion_matrix, display_top_confusions
 
 def enroll_speakers(dataset='Train', batch_size=16):
     """
@@ -79,7 +79,7 @@ def identify_single_file(audio_path, label_dir, dataset='Dev'):
         predicted_speaker, similarity = result
         display_comparison(audio_filename, reference_speaker, predicted_speaker, similarity)
 
-def identify_batch(audio_dir, label_dir, limit=5, dataset='Dev'):
+def identify_batch(audio_dir, label_dir, limit=5, dataset='Dev', show_confusion_matrix=False):
     """
     Identify speakers for multiple audio files.
     
@@ -88,6 +88,7 @@ def identify_batch(audio_dir, label_dir, limit=5, dataset='Dev'):
         label_dir: Directory with labels
         limit: Maximum number of files to process
         dataset: Dataset name
+        show_confusion_matrix: Whether to display confusion matrix analysis
     """
     database_path = config.get_speaker_database_path()
     if not os.path.exists(database_path):
@@ -130,6 +131,13 @@ def identify_batch(audio_dir, label_dir, limit=5, dataset='Dev'):
     
     if results:
         display_batch_summary(results)
+        
+        if show_confusion_matrix:
+            predictions = [r['predicted'] for r in results]
+            references = [r['reference'] for r in results]
+            
+            confusion_data = create_confusion_matrix(predictions, references)
+            display_top_confusions(confusion_data, top_n=20)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -188,6 +196,12 @@ Examples:
         help='GPU batch size for enrollment: how many audio files to process simultaneously (default: 16). Only used with --enroll flag. Increase for more GPU memory, decrease if you get OOM errors.'
     )
     
+    parser.add_argument(
+        '--confusion-matrix',
+        action='store_true',
+        help='Display confusion matrix showing which speakers are most commonly misidentified. Only used in batch mode.'
+    )
+    
     args = parser.parse_args()
     
     if args.enroll:
@@ -209,7 +223,7 @@ Examples:
         print(f"\nAudio directory: {audio_dir}")
         print(f"Label directory: {label_dir}")
         
-        identify_batch(audio_dir, label_dir, limit=args.batch, dataset=args.dataset)
+        identify_batch(audio_dir, label_dir, limit=args.batch, dataset=args.dataset, show_confusion_matrix=args.confusion_matrix)
 
 if __name__ == "__main__":
     main()
