@@ -203,5 +203,64 @@ def get_speaker_database_path():
     root = get_root_path()
     return os.path.join(root, "speaker_database.pkl")
 
+def get_track_audio_path(track, dataset=DATASET):
+    """
+    Get path to audio segments for any track (generic function).
+    
+    Args:
+        track: Track name (e.g., 'SID', 'ASR_track2', 'SD_track2', 'SD_track1', 'SAD', etc.)
+        dataset: Dataset name (Dev, Train, or Eval)
+        
+    Returns:
+        Full path to audio directory for the specified track
+    """
+    root = get_root_path()
+    if is_colab():
+        return f"{root}/FSC_P3_Train_Dev/Audio/Segments/{track}/{dataset}"
+    else:
+        # Local cache: maintain backwards compatibility for SID and ASR_track2
+        if track == 'SID':
+            audio_dir = os.path.join(root, "sid_audio", dataset)
+        elif track == 'ASR_track2':
+            audio_dir = os.path.join(root, "audio", dataset)
+        else:
+            # For custom tracks, create directory based on track name
+            safe_track_name = track.lower().replace('_', '').replace('-', '')
+            audio_dir = os.path.join(root, f"{safe_track_name}_audio", dataset)
+        os.makedirs(audio_dir, exist_ok=True)
+        return audio_dir
+
+def get_track_label_path(track, dataset=DATASET):
+    """
+    Get path to labels/transcripts for any track (generic function).
+    
+    Args:
+        track: Track name (e.g., 'SID', 'ASR_track2', 'SD_track2', 'SD_track1', 'SAD', etc.)
+        dataset: Dataset name (Dev, Train, or Eval)
+        
+    Returns:
+        Full path to label/transcript directory for the specified track
+    """
+    root = get_root_path()
+    if is_colab():
+        # For SID, labels are in Transcripts/SID (no dataset subfolder)
+        # For others like ASR_track2, labels are in Transcripts/ASR_track2/{dataset}
+        if track == 'SID':
+            return f"{root}/FSC_P3_Train_Dev/Transcripts/SID"
+        else:
+            return f"{root}/FSC_P3_Train_Dev/Transcripts/{track}/{dataset}"
+    else:
+        # Local cache: maintain backwards compatibility for SID and ASR_track2
+        if track == 'SID':
+            label_dir = os.path.join(root, "sid_labels")
+        elif track == 'ASR_track2':
+            label_dir = os.path.join(root, "transcripts", dataset)
+        else:
+            # For custom tracks, create directory based on track name
+            safe_track_name = track.lower().replace('_', '').replace('-', '')
+            label_dir = os.path.join(root, f"{safe_track_name}_labels", dataset)
+        os.makedirs(label_dir, exist_ok=True)
+        return label_dir
+
 WHISPER_MODEL = "tiny.en"
 SPEAKER_EMBEDDING_MODEL = "speechbrain/spkrec-ecapa-voxceleb"
