@@ -49,24 +49,12 @@ def get_drive_folder_path(dataset=DATASET):
     }
 
 def get_audio_path(dataset=DATASET):
-    """Get path to audio segments for ASR_track2."""
-    root = get_root_path()
-    if is_colab():
-        return f"{root}/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/{dataset}"
-    else:
-        audio_dir = os.path.join(root, "audio", dataset)
-        os.makedirs(audio_dir, exist_ok=True)
-        return audio_dir
+    """Get path to audio segments for ASR_track2 (default folder)."""
+    return get_folder_audio_path('ASR_track2', dataset)
 
 def get_transcript_path(dataset=DATASET):
-    """Get path to reference transcripts for ASR_track2."""
-    root = get_root_path()
-    if is_colab():
-        return f"{root}/FSC_P3_Train_Dev/Transcripts/ASR_track2/{dataset}"
-    else:
-        transcript_dir = os.path.join(root, "transcripts", dataset)
-        os.makedirs(transcript_dir, exist_ok=True)
-        return transcript_dir
+    """Get path to reference transcripts for ASR_track2 (default folder)."""
+    return get_folder_label_path('ASR_track2', dataset)
 
 def get_output_path():
     """Get path to save ASR outputs."""
@@ -76,24 +64,12 @@ def get_output_path():
     return output_dir
 
 def get_sid_audio_path(dataset=DATASET):
-    """Get path to audio segments for SID."""
-    root = get_root_path()
-    if is_colab():
-        return f"{root}/FSC_P3_Train_Dev/Audio/Segments/SID/{dataset}"
-    else:
-        audio_dir = os.path.join(root, "sid_audio", dataset)
-        os.makedirs(audio_dir, exist_ok=True)
-        return audio_dir
+    """Get path to audio segments for SID (default folder)."""
+    return get_folder_audio_path('SID', dataset)
 
 def get_sid_label_path(dataset=DATASET):
-    """Get path to SID speaker labels."""
-    root = get_root_path()
-    if is_colab():
-        return f"{root}/FSC_P3_Train_Dev/Transcripts/SID"
-    else:
-        label_dir = os.path.join(root, "sid_labels")
-        os.makedirs(label_dir, exist_ok=True)
-        return label_dir
+    """Get path to SID speaker labels (default folder)."""
+    return get_folder_label_path('SID', dataset)
 
 def get_sid_label_basename(dataset=DATASET):
     """Return the base filename for SID speaker labels without extension."""
@@ -203,62 +179,50 @@ def get_speaker_database_path():
     root = get_root_path()
     return os.path.join(root, "speaker_database.pkl")
 
-def get_track_audio_path(track, dataset=DATASET):
+def get_folder_audio_path(folder, dataset=DATASET):
     """
-    Get path to audio segments for any track (generic function).
+    Get path to audio segments for any folder.
     
     Args:
-        track: Track name (e.g., 'SID', 'ASR_track2', 'SD_track2', 'SD_track1', 'SAD', etc.)
+        folder: Folder name (e.g., 'SID', 'ASR_track2', 'SD_track2', 'SD_track1', 'SAD', etc.)
         dataset: Dataset name (Dev, Train, or Eval)
         
     Returns:
-        Full path to audio directory for the specified track
+        Full path to audio directory for the specified folder
     """
     root = get_root_path()
     if is_colab():
-        return f"{root}/FSC_P3_Train_Dev/Audio/Segments/{track}/{dataset}"
+        return f"{root}/FSC_P3_Train_Dev/Audio/Segments/{folder}/{dataset}"
     else:
-        # Local cache: maintain backwards compatibility for SID and ASR_track2
-        if track == 'SID':
-            audio_dir = os.path.join(root, "sid_audio", dataset)
-        elif track == 'ASR_track2':
-            audio_dir = os.path.join(root, "audio", dataset)
-        else:
-            # For custom tracks, create directory based on track name
-            safe_track_name = track.lower().replace('_', '').replace('-', '')
-            audio_dir = os.path.join(root, f"{safe_track_name}_audio", dataset)
+        audio_dir = os.path.join(root, f"{folder}_audio", dataset)
         os.makedirs(audio_dir, exist_ok=True)
         return audio_dir
 
-def get_track_label_path(track, dataset=DATASET):
+def get_folder_label_path(folder, dataset=DATASET):
     """
-    Get path to labels/transcripts for any track (generic function).
+    Get path to labels/transcripts for any folder.
     
     Args:
-        track: Track name (e.g., 'SID', 'ASR_track2', 'SD_track2', 'SD_track1', 'SAD', etc.)
+        folder: Folder name (e.g., 'SID', 'ASR_track2', 'SD_track2', 'SD_track1', 'SAD', etc.)
         dataset: Dataset name (Dev, Train, or Eval)
         
     Returns:
-        Full path to label/transcript directory for the specified track
+        Full path to label/transcript directory for the specified folder
     """
     root = get_root_path()
     if is_colab():
         # For SID, labels are in Transcripts/SID (no dataset subfolder)
-        # For others like ASR_track2, labels are in Transcripts/ASR_track2/{dataset}
-        if track == 'SID':
+        # For others like ASR_track2, labels are in Transcripts/{folder}/{dataset}
+        if folder == 'SID':
             return f"{root}/FSC_P3_Train_Dev/Transcripts/SID"
         else:
-            return f"{root}/FSC_P3_Train_Dev/Transcripts/{track}/{dataset}"
+            return f"{root}/FSC_P3_Train_Dev/Transcripts/{folder}/{dataset}"
     else:
-        # Local cache: maintain backwards compatibility for SID and ASR_track2
-        if track == 'SID':
-            label_dir = os.path.join(root, "sid_labels")
-        elif track == 'ASR_track2':
-            label_dir = os.path.join(root, "transcripts", dataset)
+        # Local cache: SID labels in single folder, others have dataset subfolder
+        if folder == 'SID':
+            label_dir = os.path.join(root, f"{folder}_labels")
         else:
-            # For custom tracks, create directory based on track name
-            safe_track_name = track.lower().replace('_', '').replace('-', '')
-            label_dir = os.path.join(root, f"{safe_track_name}_labels", dataset)
+            label_dir = os.path.join(root, f"{folder}_labels", dataset)
         os.makedirs(label_dir, exist_ok=True)
         return label_dir
 

@@ -14,7 +14,7 @@ from modules.whisper_transcriber import transcribe_audio
 from modules.evaluator import display_comparison
 import config
 
-def run_single_file(audio_path, transcript_dir, dataset='Dev', show_timestamps=True, model_name=None, track='ASR_track2'):
+def run_single_file(audio_path, transcript_dir, dataset='Dev', show_timestamps=True, model_name=None, folder='ASR_track2'):
     """
     Process a single audio file.
     
@@ -24,7 +24,7 @@ def run_single_file(audio_path, transcript_dir, dataset='Dev', show_timestamps=T
         dataset: Dataset name (Dev, Train, or Eval)
         show_timestamps: Whether to show timestamps in output
         model_name: Whisper model identifier to use for transcription
-        track: Track name (for display purposes)
+        folder: Folder name (for display purposes)
     """
     audio_filename = os.path.basename(audio_path)
     
@@ -39,7 +39,7 @@ def run_single_file(audio_path, transcript_dir, dataset='Dev', show_timestamps=T
     
     display_comparison(audio_filename, reference, hypothesis, show_timestamps=show_timestamps)
 
-def run_batch(audio_dir, transcript_dir, limit=5, dataset='Dev', show_timestamps=True, model_name=None, track='ASR_track2'):
+def run_batch(audio_dir, transcript_dir, limit=5, dataset='Dev', show_timestamps=True, model_name=None, folder='ASR_track2'):
     """
     Process multiple audio files in batch.
     
@@ -50,7 +50,7 @@ def run_batch(audio_dir, transcript_dir, limit=5, dataset='Dev', show_timestamps
         dataset: Dataset name (Dev, Train, or Eval)
         show_timestamps: Whether to show timestamps in output
         model_name: Whisper model identifier to use for transcription
-        track: Track name (for display purposes)
+        folder: Folder name (for display purposes)
     """
     pairs = get_audio_files_with_transcripts(audio_dir, transcript_dir, limit=limit, dataset=dataset)
     
@@ -97,8 +97,8 @@ def run_batch(audio_dir, transcript_dir, limit=5, dataset='Dev', show_timestamps
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description='ASR Pipeline with Whisper')
-    parser.add_argument('--track', type=str, default='ASR_track2',
-                       help='Track/folder to use: ASR_track2, SID, SD_track2, SD_track1, SAD, etc. (default: ASR_track2)')
+    parser.add_argument('--folder', type=str, default='ASR_track2',
+                       help='Folder to use: ASR_track2, SID, SD_track2, SD_track1, SAD, etc. (default: ASR_track2)')
     parser.add_argument('--dataset', type=str, default='Dev', 
                        help='Dataset to use: Dev, Train, or Eval')
     parser.add_argument('--file', type=str, default=None,
@@ -118,7 +118,7 @@ def main():
     print("ASR Pipeline with Whisper")
     print("="*80)
     print(f"Phase: {config.PHASE}")
-    print(f"Track: {args.track}")
+    print(f"Folder: {args.folder}")
     print(f"Dataset: {args.dataset}")
     print(f"Whisper Model: {model_name}")
     print("="*80)
@@ -140,8 +140,8 @@ def main():
             print("For Colab: Make sure Google Drive is mounted")
         sys.exit(1)
     
-    audio_dir = config.get_track_audio_path(args.track, args.dataset)
-    transcript_dir = config.get_track_label_path(args.track, args.dataset)
+    audio_dir = config.get_folder_audio_path(args.folder, args.dataset)
+    transcript_dir = config.get_folder_label_path(args.folder, args.dataset)
     
     if not audio_dir or not transcript_dir:
         print("\nError: Could not determine data paths")
@@ -164,7 +164,7 @@ def main():
             dataset=args.dataset,
             show_timestamps=show_timestamps,
             model_name=model_name,
-            track=args.track
+            folder=args.folder
         )
     else:
         run_batch(
@@ -174,7 +174,7 @@ def main():
             dataset=args.dataset,
             show_timestamps=show_timestamps,
             model_name=model_name,
-            track=args.track
+            folder=args.folder
         )
 
 if __name__ == "__main__":
