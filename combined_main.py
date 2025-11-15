@@ -7,30 +7,32 @@ import os
 import sys
 import argparse
 import config
-from modules.data_loader import load_reference_transcript, load_sid_label, get_audio_files_with_transcripts
+from modules.data_loader import load_reference_transcript, load_speaker_label_auto, get_audio_files_with_transcripts
 from modules.whisper_transcriber import transcribe_audio
 from modules.evaluator import calculate_wer
 from modules.speaker_identifier import SpeakerIdentifier
 
-def process_single_file(audio_path, transcript_dir, label_dir, dataset='Dev', whisper_model=None):
+def process_single_file(audio_path, transcript_dir, label_dir, dataset='Dev', whisper_model=None, folder='ASR_track2'):
     """
     Process a single audio file with both ASR and SID.
     
     Args:
         audio_path: Path to audio file
         transcript_dir: Directory containing ASR transcripts
-        label_dir: Directory containing SID labels
+        label_dir: Directory containing SID labels (not used, kept for compatibility)
         dataset: Dataset name
         whisper_model: Whisper model name (optional)
+        folder: Folder name (for display purposes)
     """
     audio_filename = os.path.basename(audio_path)
+    audio_dir = os.path.dirname(audio_path)
     
     print("\n" + "="*80)
     print(f"File: {audio_filename}")
     print("="*80)
     
     reference_transcript = load_reference_transcript(transcript_dir, audio_filename, dataset=dataset)
-    reference_speaker = load_sid_label(label_dir, audio_filename, dataset=dataset)
+    reference_speaker = load_speaker_label_auto(audio_dir, audio_filename, dataset=dataset)
     
     if not reference_transcript:
         print(f"Warning: No reference transcript found")
@@ -84,7 +86,7 @@ def process_single_file(audio_path, transcript_dir, label_dir, dataset='Dev', wh
     
     print("="*80)
 
-def process_batch(audio_dir, transcript_dir, label_dir, limit=5, dataset='Dev', whisper_model=None):
+def process_batch(audio_dir, transcript_dir, label_dir, limit=5, dataset='Dev', whisper_model=None, folder='ASR_track2'):
     """
     Process multiple audio files with both ASR and SID.
     
@@ -95,6 +97,7 @@ def process_batch(audio_dir, transcript_dir, label_dir, limit=5, dataset='Dev', 
         limit: Maximum number of files to process
         dataset: Dataset name
         whisper_model: Whisper model name (optional)
+        folder: Folder name (for display purposes)
     """
     pairs = get_audio_files_with_transcripts(audio_dir, transcript_dir, limit=limit, dataset=dataset)
     
@@ -127,7 +130,7 @@ def process_batch(audio_dir, transcript_dir, label_dir, limit=5, dataset='Dev', 
         reference_speaker = None
         
         if use_sid:
-            reference_speaker = load_sid_label(label_dir, audio_filename, dataset=dataset)
+            reference_speaker = load_speaker_label_auto(audio_dir, audio_filename, dataset=dataset)
             if reference_speaker:
                 result = identifier.identify_speaker(audio_path, top_k=1)
                 if result:
@@ -185,17 +188,17 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Process single file with both ASR and SID
-  python combined_main.py --file fsc_p3_ASR_track2_dev_0018.wav
+  # Process single file from ASR_track2 with both ASR and SID
+  python combined_main.py --folder ASR_track2 --file fsc_p3_ASR_track2_dev_0018.wav
   
-  # Batch process 5 files
-  python combined_main.py --batch 5
+  # Batch process 5 files from SID folder
+  python combined_main.py --folder SID --batch 5
   
-  # Use different Whisper model
-  python combined_main.py --file audio.wav --whisper-model base.en
+  # Use different Whisper model on ASR_track2
+  python combined_main.py --folder ASR_track2 --file audio.wav --whisper-model base.en
   
-  # Process from Train dataset
-  python combined_main.py --dataset Train --batch 10
+  # Process from Train dataset with custom folder
+  python combined_main.py --folder SD_track2 --dataset Train --batch 10
         """
     )
     
@@ -210,6 +213,13 @@ Examples:
         type=int,
         default=5,
         help='Number of files to process in batch mode (default: 5)'
+    )
+    
+    parser.add_argument(
+        '--folder',
+        type=str,
+        default='ASR_track2',
+        help='Folder to use: ASR_track2, SID, SD_track2, SD_track1, SAD, etc. (default: ASR_track2)'
     )
     
     parser.add_argument(
@@ -229,13 +239,14 @@ Examples:
     
     args = parser.parse_args()
     
-    audio_dir = config.get_audio_path(args.dataset)
-    transcript_dir = config.get_transcript_path(args.dataset)
-    label_dir = config.get_sid_label_path(args.dataset)
+    audio_dir = config.get_folder_audio_path(args.folder, args.dataset)
+    transcript_dir = config.get_folder_label_path(args.folder, args.dataset)
+    label_dir = transcript_dir  # For combined pipeline, labels are in same dir as transcripts
     
     print(f"\n{'='*60}")
-    print(f"Combined ASR + SID Pipeline - {args.dataset} Dataset")
+    print(f"Combined ASR + SID Pipeline - {args.folder}/{args.dataset}")
     print(f"{'='*60}")
+    print(f"Folder: {args.folder}")
     print(f"Audio directory: {audio_dir}")
     print(f"Transcript directory: {transcript_dir}")
     print(f"Label directory: {label_dir}")
@@ -251,7 +262,8 @@ Examples:
             transcript_dir, 
             label_dir, 
             dataset=args.dataset,
-            whisper_model=args.whisper_model
+            whisper_model=args.whisper_model,
+            folder=args.folder
         )
     else:
         process_batch(
@@ -260,7 +272,8 @@ Examples:
             label_dir,
             limit=args.batch,
             dataset=args.dataset,
-            whisper_model=args.whisper_model
+            whisper_model=args.whisper_model,
+            folder=args.folder
         )
 
 if __name__ == "__main__":

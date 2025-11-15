@@ -21,27 +21,28 @@ def _normalize_text(text):
 
 def calculate_wer(reference, hypothesis):
     """
-    Calculate Word Error Rate between reference and hypothesis.
+    Calculate Word Error Rate and Character Error Rate between reference and hypothesis.
     
     Args:
         reference: Ground truth transcript
         hypothesis: Predicted transcript
         
     Returns:
-        WER as a percentage
+        Tuple of (WER, CER) as percentages
     """
     reference_norm = _normalize_text(reference)
     hypothesis_norm = _normalize_text(hypothesis)
 
     if not reference_norm or not hypothesis_norm:
-        return 100.0
+        return 100.0, 100.0
 
     try:
         wer = jiwer.wer(reference_norm, hypothesis_norm) * 100
-        return wer
+        cer = jiwer.cer(reference_norm, hypothesis_norm) * 100
+        return wer, cer
     except Exception as e:
-        print(f"Error calculating WER: {e}")
-        return 100.0
+        print(f"Error calculating WER/CER: {e}")
+        return 100.0, 100.0
 
 def calculate_cer(reference, hypothesis):
     """
@@ -143,8 +144,7 @@ def display_comparison(audio_filename, reference, hypothesis, show_timestamps=Fa
         print(format_transcript_with_timestamps(hypothesis))
         print()
     
-    wer = calculate_wer(reference, hypothesis_text)
-    cer = calculate_cer(reference, hypothesis_text)
+    wer, cer = calculate_wer(reference, hypothesis_text)
     
     print("METRICS:")
     print("-" * 80)

@@ -9,23 +9,26 @@ import argparse
 import config
 from modules.data_loader import group_audio_by_speaker, get_sid_files_with_labels, load_sid_label
 from modules.speaker_identifier import SpeakerIdentifier
-from modules.sid_evaluator import display_comparison, display_batch_summary
+from modules.sid_evaluator import display_comparison, display_batch_summary, create_confusion_matrix, display_top_confusions
 
-def enroll_speakers(dataset='Train'):
+def enroll_speakers(folder='SID', dataset='Train', batch_size=16):
     """
     Enroll speakers from the training dataset.
     
     Args:
+        folder: Folder name (SID, ASR_track2, SD_track2, etc.)
         dataset: Dataset to use for enrollment (default: Train)
+        batch_size: Number of files to process per GPU batch (default: 16)
     """
     print(f"\n{'='*60}")
-    print(f"Speaker Enrollment - {dataset} Dataset")
+    print(f"Speaker Enrollment - {folder}/{dataset} Dataset")
     print(f"{'='*60}\n")
     
-    audio_dir = config.get_sid_audio_path(dataset)
-    label_dir = config.get_sid_label_path(dataset)
+    audio_dir = config.get_folder_audio_path(folder, dataset)
+    label_dir = config.get_folder_label_path(folder, dataset)
     database_path = config.get_speaker_database_path()
     
+    print(f"Folder: {folder}")
     print(f"Audio directory: {audio_dir}")
     print(f"Label directory: {label_dir}")
     print(f"Database will be saved to: {database_path}\n")
@@ -40,12 +43,12 @@ def enroll_speakers(dataset='Train'):
     total_files = sum(len(files) for files in speaker_files.values())
     print(f"Total audio files: {total_files}\n")
     
-    identifier = SpeakerIdentifier()
+    identifier = SpeakerIdentifier(batch_size=batch_size)
     identifier.enroll_speakers(speaker_files, save_path=database_path)
     
     print(f"\nEnrollment complete! Database saved to: {database_path}")
 
-def identify_single_file(audio_path, label_dir, dataset='Dev'):
+def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID'):
     """
     Identify speaker from a single audio file.
     
@@ -53,6 +56,7 @@ def identify_single_file(audio_path, label_dir, dataset='Dev'):
         audio_path: Path to audio file
         label_dir: Directory containing labels
         dataset: Dataset name
+        folder: Folder name (for display purposes)
     """
     audio_filename = os.path.basename(audio_path)
     
@@ -78,7 +82,7 @@ def identify_single_file(audio_path, label_dir, dataset='Dev'):
         predicted_speaker, similarity = result
         display_comparison(audio_filename, reference_speaker, predicted_speaker, similarity)
 
-def identify_batch(audio_dir, label_dir, limit=5, dataset='Dev'):
+def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusion_matrix=False, folder='SID'):
     """
     Identify speakers for multiple audio files.
     
@@ -87,6 +91,8 @@ def identify_batch(audio_dir, label_dir, limit=5, dataset='Dev'):
         label_dir: Directory with labels
         limit: Maximum number of files to process
         dataset: Dataset name
+        show_confusion_matrix: Whether to display confusion matrix analysis
+        folder: Folder name (for display purposes)
     """
     database_path = config.get_speaker_database_path()
     if not os.path.exists(database_path):
@@ -129,6 +135,13 @@ def identify_batch(audio_dir, label_dir, limit=5, dataset='Dev'):
     
     if results:
         display_batch_summary(results)
+        
+        if show_confusion_matrix:
+            predictions = [r['predicted'] for r in results]
+            references = [r['reference'] for r in results]
+            
+            confusion_data = create_confusion_matrix(predictions, references)
+            display_top_confusions(confusion_data, top_n=20)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -136,17 +149,27 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Enroll speakers from Train dataset (one-time setup)
-  python sid_main.py --enroll --dataset Train
+  # Enroll speakers from SID folder Train dataset (one-time setup)
+  python sid_main.py --enroll --folder SID --dataset Train
   
-  # Identify speaker from single file
+  # Enroll from ASR_track2
+  python sid_main.py --enroll --folder ASR_track2 --dataset Train
+  
+  # Enroll with custom GPU batch size (tune based on GPU memory)
+  python sid_main.py --enroll --folder SID --dataset Train --batch-size 32
+  
+  # Identify speaker from single file (default folder: SID)
   python sid_main.py --file fsc_p3_SID_dev_0010.wav
   
-  # Batch process 5 files from Dev set
-  python sid_main.py --batch 5
+  # Process all files in Dev set from SID folder
+  python sid_main.py --folder SID --dataset Dev
   
-  # Batch process 10 files from Train set
-  python sid_main.py --dataset Train --batch 10
+  # Process all files from ASR_track2 with confusion matrix
+  python sid_main.py --folder ASR_track2 --dataset Dev --confusion-matrix
+  
+  # Process custom folders (SD, SAD, etc.)
+  python sid_main.py --folder SD_track2 --dataset Train
+  python sid_main.py --folder SAD --dataset Dev --confusion-matrix
         """
     )
     
@@ -165,8 +188,15 @@ Examples:
     parser.add_argument(
         '--batch',
         type=int,
-        default=5,
-        help='Number of files to process in batch mode (default: 5)'
+        default=None,
+        help='Number of files to identify for testing. If not specified, processes all files in dataset. Used without --enroll flag.'
+    )
+    
+    parser.add_argument(
+        '--folder',
+        type=str,
+        default='SID',
+        help='Folder to use: SID, ASR_track2, SD_track2, SD_track1, SAD, etc. (default: SID)'
     )
     
     parser.add_argument(
@@ -177,28 +207,42 @@ Examples:
         help='Dataset to use (default: Dev)'
     )
     
+    parser.add_argument(
+        '--batch-size',
+        type=int,
+        default=16,
+        help='GPU batch size for enrollment: how many audio files to process simultaneously (default: 16). Only used with --enroll flag. Increase for more GPU memory, decrease if you get OOM errors.'
+    )
+    
+    parser.add_argument(
+        '--confusion-matrix',
+        action='store_true',
+        help='Display confusion matrix showing which speakers are most commonly misidentified. Only used in batch mode.'
+    )
+    
     args = parser.parse_args()
     
     if args.enroll:
-        enroll_speakers(dataset=args.dataset)
+        enroll_speakers(folder=args.folder, dataset=args.dataset, batch_size=args.batch_size)
     elif args.file:
-        audio_dir = config.get_sid_audio_path(args.dataset)
-        label_dir = config.get_sid_label_path(args.dataset)
+        audio_dir = config.get_folder_audio_path(args.folder, args.dataset)
+        label_dir = config.get_folder_label_path(args.folder, args.dataset)
         audio_path = os.path.join(audio_dir, args.file)
         
         if not os.path.exists(audio_path):
             print(f"Error: Audio file not found: {audio_path}")
             sys.exit(1)
         
-        identify_single_file(audio_path, label_dir, dataset=args.dataset)
+        identify_single_file(audio_path, label_dir, dataset=args.dataset, folder=args.folder)
     else:
-        audio_dir = config.get_sid_audio_path(args.dataset)
-        label_dir = config.get_sid_label_path(args.dataset)
+        audio_dir = config.get_folder_audio_path(args.folder, args.dataset)
+        label_dir = config.get_folder_label_path(args.folder, args.dataset)
         
-        print(f"\nAudio directory: {audio_dir}")
+        print(f"\nFolder: {args.folder}")
+        print(f"Audio directory: {audio_dir}")
         print(f"Label directory: {label_dir}")
         
-        identify_batch(audio_dir, label_dir, limit=args.batch, dataset=args.dataset)
+        identify_batch(audio_dir, label_dir, limit=args.batch, dataset=args.dataset, show_confusion_matrix=args.confusion_matrix, folder=args.folder)
 
 if __name__ == "__main__":
     main()
