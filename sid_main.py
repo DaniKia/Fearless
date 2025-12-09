@@ -7,6 +7,7 @@ import os
 import sys
 import argparse
 import config
+from tqdm import tqdm
 from modules.data_loader import group_audio_by_speaker, get_sid_files_with_labels, load_sid_label
 from modules.speaker_identifier import SpeakerIdentifier
 from modules.sid_evaluator import display_comparison, display_batch_summary, create_confusion_matrix, display_top_confusions
@@ -116,8 +117,9 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
         return
     
     results = []
+    correct_count = 0
     
-    for audio_path, reference_speaker in pairs:
+    for audio_path, reference_speaker in tqdm(pairs, desc="Identifying speakers", unit="file"):
         audio_filename = os.path.basename(audio_path)
         
         top_k_results = identifier.identify_speaker(audio_path, top_k=5)
@@ -125,6 +127,8 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
         if top_k_results:
             predicted_speaker, similarity = top_k_results[0]
             is_correct = (predicted_speaker == reference_speaker)
+            if is_correct:
+                correct_count += 1
             
             top_k_speakers = [spk for spk, _ in top_k_results]
             
