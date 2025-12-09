@@ -99,34 +99,55 @@ class SpeakerIdentifier:
             self.load_model()
         
         speaker_database = {}
+        processed_speakers = set()
+
+        if save_path and os.path.exists(save_path):
+            print(f"Existing database found at {save_path}. Resuming enrollment...")
+            if self.load_database(save_path):
+                speaker_database = self.speaker_database or {}
+                processed_speakers = set(speaker_database.keys())
+            else:
+                print("Warning: Failed to load existing database. Starting fresh enrollment.")
+                speaker_database = {}
+
+        self.speaker_database = speaker_database
+
         total_speakers = len(speaker_files_dict)
         total_files = sum(len(files) for files in speaker_files_dict.values())
+        processed_files = sum(
+            len(files) for speaker_id, files in speaker_files_dict.items()
+            if speaker_id in processed_speakers
+        )
+        remaining_speakers = total_speakers - len(processed_speakers)
         
         print(f"\n{'='*60}")
         print(f"Enrolling {total_speakers} speakers from {total_files} audio files")
+        if processed_speakers:
+            print(f"Resuming: {len(processed_speakers)} speakers already enrolled, {remaining_speakers} remaining")
         print(f"Using batch size: {self.batch_size}")
         print(f"{'='*60}\n")
         
         speaker_count = 0
-        with tqdm(total=total_files, desc="Processing audio files", unit="file") as pbar:
+        with tqdm(total=total_files, desc="Processing audio files", unit="file", initial=processed_files) as pbar:
             for speaker_id, audio_files in speaker_files_dict.items():
                 speaker_count += 1
                 num_files = len(audio_files)
                 pbar.set_description(f"[{speaker_count}/{total_speakers}] {speaker_id} ({num_files} files)")
-                
+
+                if speaker_id in processed_speakers:
+                    continue
+
                 embeddings = self._process_files_in_batches(audio_files, pbar)
-                
+
                 if embeddings:
                     avg_embedding = np.mean(embeddings, axis=0)
                     speaker_database[speaker_id] = avg_embedding
+                    self.speaker_database = speaker_database
+                    if save_path:
+                        self.save_database(save_path)
                 else:
                     print(f"\nWarning: No valid embeddings for speaker {speaker_id}")
-        
-        self.speaker_database = speaker_database
-        
-        if save_path:
-            self.save_database(save_path)
-        
+
         print(f"\n{'='*60}")
         print(f"Enrollment complete!")
         print(f"Enrolled {len(speaker_database)} speakers")
