@@ -82,7 +82,7 @@ def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID'):
         predicted_speaker, similarity = result
         display_comparison(audio_filename, reference_speaker, predicted_speaker, similarity)
 
-def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusion_matrix=False, folder='SID'):
+def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusion_matrix=False, folder='SID', verbose=False):
     """
     Identify speakers for multiple audio files.
     
@@ -93,7 +93,10 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
         dataset: Dataset name
         show_confusion_matrix: Whether to display confusion matrix analysis
         folder: Folder name (for display purposes)
+        verbose: Whether to show per-file status
     """
+    from modules.sid_evaluator import display_batch_summary_extended
+    
     database_path = config.get_speaker_database_path()
     if not os.path.exists(database_path):
         print(f"Error: Speaker database not found at {database_path}")
@@ -117,31 +120,28 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
     for audio_path, reference_speaker in pairs:
         audio_filename = os.path.basename(audio_path)
         
-        result = identifier.identify_speaker(audio_path, top_k=1)
+        top_k_results = identifier.identify_speaker(audio_path, top_k=5)
         
-        if result:
-            predicted_speaker, similarity = result
+        if top_k_results:
+            predicted_speaker, similarity = top_k_results[0]
             is_correct = (predicted_speaker == reference_speaker)
             
-            display_comparison(audio_filename, reference_speaker, predicted_speaker, similarity)
+            top_k_speakers = [spk for spk, _ in top_k_results]
+            
+            if verbose:
+                display_comparison(audio_filename, reference_speaker, predicted_speaker, similarity)
             
             results.append({
                 'filename': audio_filename,
                 'reference': reference_speaker,
                 'predicted': predicted_speaker,
                 'similarity': similarity,
-                'correct': is_correct
+                'correct': is_correct,
+                'top_k': top_k_speakers
             })
     
     if results:
-        display_batch_summary(results)
-        
-        if show_confusion_matrix:
-            predictions = [r['predicted'] for r in results]
-            references = [r['reference'] for r in results]
-            
-            confusion_data = create_confusion_matrix(predictions, references)
-            display_top_confusions(confusion_data, top_n=20)
+        display_batch_summary_extended(results, show_confusion_matrix=show_confusion_matrix)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -220,6 +220,12 @@ Examples:
         help='Display confusion matrix showing which speakers are most commonly misidentified. Only used in batch mode.'
     )
     
+    parser.add_argument(
+        '--verbose',
+        action='store_true',
+        help='Show per-file status during batch processing. Default is summary only.'
+    )
+    
     args = parser.parse_args()
     
     if args.enroll:
@@ -242,7 +248,7 @@ Examples:
         print(f"Audio directory: {audio_dir}")
         print(f"Label directory: {label_dir}")
         
-        identify_batch(audio_dir, label_dir, limit=args.batch, dataset=args.dataset, show_confusion_matrix=args.confusion_matrix, folder=args.folder)
+        identify_batch(audio_dir, label_dir, limit=args.batch, dataset=args.dataset, show_confusion_matrix=args.confusion_matrix, folder=args.folder, verbose=args.verbose)
 
 if __name__ == "__main__":
     main()
