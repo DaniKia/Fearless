@@ -34,6 +34,10 @@ class SpeakerIdentifier:
             return
         
         try:
+            import torchaudio
+            if not hasattr(torchaudio, 'list_audio_backends'):
+                torchaudio.list_audio_backends = lambda: ['soundfile']
+            
             from speechbrain.pretrained import EncoderClassifier
             print(f"Loading speaker embedding model: {self.model_name}")
             print(f"Using device: {self.device}")
