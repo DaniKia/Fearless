@@ -9,6 +9,8 @@ PHASE = "Phase3"
 DATASET = "Dev"
 DRIVE_ROOT_FOLDER = "Fearless_Steps_Challenge_Phase3"
 
+_SID_LABEL_SUFFIXES = ("", ".txt", ".TXT")
+
 def is_colab():
     """Check if running in Google Colab environment."""
     try:
@@ -47,24 +49,12 @@ def get_drive_folder_path(dataset=DATASET):
     }
 
 def get_audio_path(dataset=DATASET):
-    """Get path to audio segments for ASR_track2."""
-    root = get_root_path()
-    if is_colab():
-        return f"{root}/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/{dataset}"
-    else:
-        audio_dir = os.path.join(root, "audio", dataset)
-        os.makedirs(audio_dir, exist_ok=True)
-        return audio_dir
+    """Get path to audio segments for ASR_track2 (default folder)."""
+    return get_folder_audio_path('ASR_track2', dataset)
 
 def get_transcript_path(dataset=DATASET):
-    """Get path to reference transcripts for ASR_track2."""
-    root = get_root_path()
-    if is_colab():
-        return f"{root}/FSC_P3_Train_Dev/Transcripts/ASR_track2/{dataset}"
-    else:
-        transcript_dir = os.path.join(root, "transcripts", dataset)
-        os.makedirs(transcript_dir, exist_ok=True)
-        return transcript_dir
+    """Get path to reference transcripts for ASR_track2 (default folder)."""
+    return get_folder_label_path('ASR_track2', dataset)
 
 def get_output_path():
     """Get path to save ASR outputs."""
@@ -73,4 +63,168 @@ def get_output_path():
     os.makedirs(output_dir, exist_ok=True)
     return output_dir
 
+def get_sid_audio_path(dataset=DATASET):
+    """Get path to audio segments for SID (default folder)."""
+    return get_folder_audio_path('SID', dataset)
+
+def get_sid_label_path(dataset=DATASET):
+    """Get path to SID speaker labels (default folder)."""
+    return get_folder_label_path('SID', dataset)
+
+def get_sid_label_basename(dataset=DATASET):
+    """Return the base filename for SID speaker labels without extension."""
+    return f"fsc_p3_SID_uttID2spkID_{dataset}"
+
+def find_sid_label_file(label_dir=None, dataset=DATASET):
+    """
+    Locate the SID label file, accounting for optional extensions used in the dataset.
+
+    Args:
+        label_dir: Directory containing SID label files. Defaults to configured path.
+        dataset: Dataset name (Dev, Train, or Eval).
+
+    Returns:
+        Full path to the SID label file. If no candidate exists on disk, returns the
+        path using the canonical filename without extension.
+    """
+    if label_dir is None:
+        label_dir = get_sid_label_path(dataset)
+
+    base_name = get_sid_label_basename(dataset)
+
+    for suffix in _SID_LABEL_SUFFIXES:
+        candidate = os.path.join(label_dir, base_name + suffix)
+        if os.path.exists(candidate):
+            return candidate
+
+    return os.path.join(label_dir, base_name)
+
+def get_asr_track2_speaker_label_path(dataset=DATASET):
+    """Get path to ASR_track2 speaker labels (same directory as transcripts)."""
+    return get_transcript_path(dataset)
+
+def get_asr_track2_speaker_label_basename(dataset=DATASET):
+    """Return the base filename for ASR_track2 speaker labels without extension."""
+    return f"fsc_p3_ASR_track2_uttID2spkID_{dataset}"
+
+def find_asr_track2_speaker_label_file(label_dir=None, dataset=DATASET):
+    """
+    Locate the ASR_track2 speaker label file, accounting for optional extensions.
+
+    Args:
+        label_dir: Directory containing ASR_track2 label files. Defaults to configured path.
+        dataset: Dataset name (Dev, Train, or Eval).
+
+    Returns:
+        Full path to the ASR_track2 speaker label file.
+    """
+    if label_dir is None:
+        label_dir = get_asr_track2_speaker_label_path(dataset)
+
+    base_name = get_asr_track2_speaker_label_basename(dataset)
+
+    for suffix in (".text", ".txt", ".TXT", ""):
+        candidate = os.path.join(label_dir, base_name + suffix)
+        if os.path.exists(candidate):
+            return candidate
+
+    return os.path.join(label_dir, base_name + ".text")
+
+def detect_dataset_info_from_path(audio_path):
+    """
+    Detect dataset type (ASR_track2 or SID) and split (Dev/Train/Eval) from audio path.
+    Works with both Colab paths and local cache paths.
+    
+    Args:
+        audio_path: Full path to audio directory or file
+        
+    Returns:
+        Tuple of (dataset_type, dataset_split)
+        dataset_type: 'ASR_track2' or 'SID' (defaults to 'ASR_track2' if ambiguous)
+        dataset_split: 'Dev', 'Train', or 'Eval' (defaults to 'Dev' if not found)
+    """
+    path_str = str(audio_path)
+    
+    # Detect dataset type from path patterns
+    dataset_type = 'ASR_track2'  # Default to ASR_track2
+    
+    # Check for SID indicators first (more specific)
+    if '/SID/' in path_str or '\\SID\\' in path_str or '/sid_audio/' in path_str or '\\sid_audio\\' in path_str:
+        dataset_type = 'SID'
+    # Check for ASR_track2 indicators
+    elif '/ASR_track2/' in path_str or '\\ASR_track2\\' in path_str:
+        dataset_type = 'ASR_track2'
+    # Local cache pattern: /audio/ (not sid_audio) defaults to ASR_track2
+    elif '/audio/' in path_str or '\\audio\\' in path_str:
+        # Make sure it's not sid_audio
+        if 'sid_audio' not in path_str.lower():
+            dataset_type = 'ASR_track2'
+    
+    # Detect dataset split
+    dataset_split = 'Dev'  # Default to Dev
+    for split in ['Dev', 'Train', 'Eval']:
+        if f'/{split}/' in path_str or f'\\{split}\\' in path_str or path_str.endswith(split):
+            dataset_split = split
+            break
+    
+    return dataset_type, dataset_split
+
+def get_speaker_database_path():
+    """
+    Get path to speaker database file.
+    Returns a single global database path (not dataset-specific).
+    The database contains all enrolled speakers from Train set,
+    used for identification across all datasets (Dev, Test, Eval).
+    """
+    root = get_root_path()
+    return os.path.join(root, "speaker_database.pkl")
+
+def get_folder_audio_path(folder, dataset=DATASET):
+    """
+    Get path to audio segments for any folder.
+    
+    Args:
+        folder: Folder name (e.g., 'SID', 'ASR_track2', 'SD_track2', 'SD_track1', 'SAD', etc.)
+        dataset: Dataset name (Dev, Train, or Eval)
+        
+    Returns:
+        Full path to audio directory for the specified folder
+    """
+    root = get_root_path()
+    if is_colab():
+        return f"{root}/FSC_P3_Train_Dev/Audio/Segments/{folder}/{dataset}"
+    else:
+        audio_dir = os.path.join(root, f"{folder}_audio", dataset)
+        os.makedirs(audio_dir, exist_ok=True)
+        return audio_dir
+
+def get_folder_label_path(folder, dataset=DATASET):
+    """
+    Get path to labels/transcripts for any folder.
+    
+    Args:
+        folder: Folder name (e.g., 'SID', 'ASR_track2', 'SD_track2', 'SD_track1', 'SAD', etc.)
+        dataset: Dataset name (Dev, Train, or Eval)
+        
+    Returns:
+        Full path to label/transcript directory for the specified folder
+    """
+    root = get_root_path()
+    if is_colab():
+        # For SID, labels are in Transcripts/SID (no dataset subfolder)
+        # For others like ASR_track2, labels are in Transcripts/{folder}/{dataset}
+        if folder == 'SID':
+            return f"{root}/FSC_P3_Train_Dev/Transcripts/SID"
+        else:
+            return f"{root}/FSC_P3_Train_Dev/Transcripts/{folder}/{dataset}"
+    else:
+        # Local cache: SID labels in single folder, others have dataset subfolder
+        if folder == 'SID':
+            label_dir = os.path.join(root, f"{folder}_labels")
+        else:
+            label_dir = os.path.join(root, f"{folder}_labels", dataset)
+        os.makedirs(label_dir, exist_ok=True)
+        return label_dir
+
 WHISPER_MODEL = "tiny.en"
+SPEAKER_EMBEDDING_MODEL = "speechbrain/spkrec-ecapa-voxceleb"

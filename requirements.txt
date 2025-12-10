@@ -6,3 +6,7 @@ google-auth-oauthlib
 google-auth-httplib2
 soundfile
 requests
+torch
+torchaudio
+speechbrain
+tqdm
