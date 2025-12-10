@@ -25,6 +25,7 @@ class PreprocessConfig:
     target_sr: int = 16000
     
     target_rms: float = 0.04
+    target_rms_db: float = -20.0
     rms_min: float = 0.005
     rms_max: float = 0.2
     

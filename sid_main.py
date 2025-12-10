@@ -7,6 +7,7 @@ import os
 import sys
 import argparse
 import config
+from datetime import datetime
 from tqdm import tqdm
 from modules.data_loader import group_audio_by_speaker, get_sid_files_with_labels, load_sid_label
 from modules.speaker_identifier import SpeakerIdentifier
@@ -27,6 +28,89 @@ def get_preprocess_config(enable_preprocessing):
     if enable_preprocessing:
         return PreprocessConfig.default()
     return None
+
+
+def format_preprocess_settings(preprocess_config):
+    """
+    Format preprocessing settings for report output.
+    
+    Args:
+        preprocess_config: PreprocessConfig or None
+        
+    Returns:
+        List of formatted setting strings
+    """
+    if preprocess_config is None:
+        return ["Preprocessing: Disabled (raw audio)"]
+    
+    lines = ["Preprocessing Settings:"]
+    
+    if preprocess_config.enable_mono:
+        lines.append("  Mono Conversion:     Enabled")
+    else:
+        lines.append("  Mono Conversion:     Disabled")
+    
+    if preprocess_config.enable_resample:
+        lines.append(f"  Resampling:          Enabled (target_sr={preprocess_config.target_sr})")
+    else:
+        lines.append("  Resampling:          Disabled")
+    
+    if preprocess_config.enable_dc_removal:
+        lines.append("  DC Removal:          Enabled")
+    else:
+        lines.append("  DC Removal:          Disabled")
+    
+    if preprocess_config.enable_bandpass:
+        lines.append(f"  Bandpass Filter:     Enabled ({preprocess_config.highpass_cutoff}-{preprocess_config.lowpass_cutoff} Hz)")
+    else:
+        lines.append("  Bandpass Filter:     Disabled")
+    
+    if preprocess_config.enable_rms_normalization:
+        lines.append(f"  RMS Normalization:   Enabled (target={preprocess_config.target_rms_db} dB)")
+    else:
+        lines.append("  RMS Normalization:   Disabled")
+    
+    if preprocess_config.enable_trim:
+        lines.append(f"  Silence Trimming:    Enabled (threshold={preprocess_config.trim_db} dB)")
+    else:
+        lines.append("  Silence Trimming:    Disabled")
+    
+    return lines
+
+
+def generate_report_filename(embedding_path):
+    """
+    Generate report filename from embedding pkl path.
+    
+    Args:
+        embedding_path: Path to the embedding pkl file
+        
+    Returns:
+        Report filename (e.g., 'model_v1_sid_report.txt')
+    """
+    base_name = os.path.basename(embedding_path)
+    name_without_ext = os.path.splitext(base_name)[0]
+    return f"{name_without_ext}_sid_report.txt"
+
+
+class ReportWriter:
+    """Captures output and writes to both console and file."""
+    
+    def __init__(self, report_path=None):
+        self.report_path = report_path
+        self.lines = []
+    
+    def print(self, text=""):
+        """Print to console and store for report."""
+        print(text)
+        self.lines.append(text)
+    
+    def save(self):
+        """Save captured output to file."""
+        if self.report_path:
+            with open(self.report_path, 'w') as f:
+                f.write('\n'.join(self.lines))
+            print(f"\nReport saved to: {self.report_path}")
 
 def enroll_speakers(folder='SID', dataset='Train', batch_size=16, preprocess_config=None):
     """
@@ -102,7 +186,9 @@ def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID', pre
         predicted_speaker, similarity = result
         display_comparison(audio_filename, reference_speaker, predicted_speaker, similarity)
 
-def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusion_matrix=False, folder='SID', verbose=False, preprocess_config=None):
+def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusion_matrix=False, 
+                   folder='SID', verbose=False, preprocess_config=None, embedding_path=None, 
+                   report_path=None):
     """
     Identify speakers for multiple audio files.
     
@@ -115,10 +201,12 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
         folder: Folder name (for display purposes)
         verbose: Whether to show per-file status
         preprocess_config: Optional PreprocessConfig for audio preprocessing
+        embedding_path: Custom path to embedding pkl file
+        report_path: Path to save report file
     """
     from modules.sid_evaluator import display_batch_summary_extended
     
-    database_path = config.get_speaker_database_path()
+    database_path = embedding_path or config.get_speaker_database_path()
     if not os.path.exists(database_path):
         print(f"Error: Speaker database not found at {database_path}")
         print("Please run enrollment first: python sid_main.py --enroll")
@@ -130,8 +218,24 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
         print("No audio files with labels found")
         return
     
-    print(f"\nProcessing {len(pairs)} files...")
-    print(f"Preprocessing: {'Enabled' if preprocess_config else 'Disabled'}\n")
+    report = ReportWriter(report_path) if report_path else None
+    
+    if report:
+        report.print("=" * 60)
+        report.print("Speaker Identification Report")
+        report.print("=" * 60)
+        report.print(f"Embedding File: {os.path.basename(database_path)}")
+        report.print(f"Dataset: {folder}/{dataset}")
+        report.print(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        report.print("")
+        for line in format_preprocess_settings(preprocess_config):
+            report.print(line)
+        report.print("=" * 60)
+        report.print("")
+        report.print(f"Processing {len(pairs)} files...")
+    else:
+        print(f"\nProcessing {len(pairs)} files...")
+        print(f"Preprocessing: {'Enabled' if preprocess_config else 'Disabled'}\n")
     
     identifier = SpeakerIdentifier()
     if not identifier.load_database(database_path):
@@ -166,7 +270,11 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
             })
     
     if results:
-        display_batch_summary_extended(results, show_confusion_matrix=show_confusion_matrix)
+        summary_output = display_batch_summary_extended(results, show_confusion_matrix=show_confusion_matrix, return_output=report is not None)
+        if report and summary_output:
+            for line in summary_output:
+                report.lines.append(line)
+            report.save()
 
 def main():
     parser = argparse.ArgumentParser(
@@ -192,9 +300,17 @@ Examples:
   # Process all files from ASR_track2 with confusion matrix
   python sid_main.py --folder ASR_track2 --dataset Dev --confusion-matrix
   
-  # Process custom folders (SD, SAD, etc.)
-  python sid_main.py --folder SD_track2 --dataset Train
-  python sid_main.py --folder SAD --dataset Dev --confusion-matrix
+  # Use a specific embedding file (creates model_v1_sid_report.txt)
+  python sid_main.py --folder SID --dataset Dev --embedding model_v1.pkl
+  
+  # Compare multiple embedding files (creates separate reports for each)
+  python sid_main.py --folder SID --dataset Dev --embedding model_v1.pkl model_v2.pkl
+  
+  # Custom report filename
+  python sid_main.py --folder SID --dataset Dev --embedding model_v1.pkl --report my_results.txt
+  
+  # With preprocessing enabled
+  python sid_main.py --folder SID --dataset Dev --embedding model_v1.pkl --preprocess
         """
     )
     
@@ -257,6 +373,20 @@ Examples:
         help='Enable audio preprocessing (mono conversion, resampling, DC removal, RMS normalization, trimming)'
     )
     
+    parser.add_argument(
+        '--embedding',
+        type=str,
+        nargs='+',
+        help='Path to embedding pkl file(s). Can specify one or more files. If multiple files provided, runs identification for each and creates separate reports.'
+    )
+    
+    parser.add_argument(
+        '--report',
+        type=str,
+        default=None,
+        help='Custom report filename (only used with single embedding file). By default, report is named after the embedding file.'
+    )
+    
     args = parser.parse_args()
     
     preprocess_config = get_preprocess_config(args.preprocess)
@@ -281,7 +411,36 @@ Examples:
         print(f"Audio directory: {audio_dir}")
         print(f"Label directory: {label_dir}")
         
-        identify_batch(audio_dir, label_dir, limit=args.batch, dataset=args.dataset, show_confusion_matrix=args.confusion_matrix, folder=args.folder, verbose=args.verbose, preprocess_config=preprocess_config)
+        embedding_files = args.embedding if args.embedding else [None]
+        
+        for i, embedding_path in enumerate(embedding_files):
+            if embedding_path and not os.path.exists(embedding_path):
+                print(f"Error: Embedding file not found: {embedding_path}")
+                continue
+            
+            if len(embedding_files) > 1:
+                print(f"\n{'#'*60}")
+                print(f"# Processing embedding {i+1}/{len(embedding_files)}: {os.path.basename(embedding_path) if embedding_path else 'default'}")
+                print(f"{'#'*60}")
+            
+            if args.report and len(embedding_files) == 1:
+                report_path = args.report
+            elif embedding_path:
+                report_path = generate_report_filename(embedding_path)
+            else:
+                report_path = None
+            
+            identify_batch(
+                audio_dir, label_dir, 
+                limit=args.batch, 
+                dataset=args.dataset, 
+                show_confusion_matrix=args.confusion_matrix, 
+                folder=args.folder, 
+                verbose=args.verbose, 
+                preprocess_config=preprocess_config,
+                embedding_path=embedding_path,
+                report_path=report_path
+            )
 
 if __name__ == "__main__":
     main()
