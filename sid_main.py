@@ -11,8 +11,24 @@ from tqdm import tqdm
 from modules.data_loader import group_audio_by_speaker, get_sid_files_with_labels, load_sid_label
 from modules.speaker_identifier import SpeakerIdentifier
 from modules.sid_evaluator import display_comparison, display_batch_summary, create_confusion_matrix, display_top_confusions
+from modules.audio_preprocessor import PreprocessConfig
 
-def enroll_speakers(folder='SID', dataset='Train', batch_size=16):
+
+def get_preprocess_config(enable_preprocessing):
+    """
+    Get preprocessing configuration based on flag.
+    
+    Args:
+        enable_preprocessing: Whether to enable preprocessing
+        
+    Returns:
+        PreprocessConfig or None
+    """
+    if enable_preprocessing:
+        return PreprocessConfig.default()
+    return None
+
+def enroll_speakers(folder='SID', dataset='Train', batch_size=16, preprocess_config=None):
     """
     Enroll speakers from the training dataset.
     
@@ -20,6 +36,7 @@ def enroll_speakers(folder='SID', dataset='Train', batch_size=16):
         folder: Folder name (SID, ASR_track2, SD_track2, etc.)
         dataset: Dataset to use for enrollment (default: Train)
         batch_size: Number of files to process per GPU batch (default: 16)
+        preprocess_config: Optional PreprocessConfig for audio preprocessing
     """
     print(f"\n{'='*60}")
     print(f"Speaker Enrollment - {folder}/{dataset} Dataset")
@@ -32,7 +49,8 @@ def enroll_speakers(folder='SID', dataset='Train', batch_size=16):
     print(f"Folder: {folder}")
     print(f"Audio directory: {audio_dir}")
     print(f"Label directory: {label_dir}")
-    print(f"Database will be saved to: {database_path}\n")
+    print(f"Database will be saved to: {database_path}")
+    print(f"Preprocessing: {'Enabled' if preprocess_config else 'Disabled'}\n")
     
     speaker_files = group_audio_by_speaker(audio_dir, label_dir, dataset=dataset)
     
@@ -45,11 +63,11 @@ def enroll_speakers(folder='SID', dataset='Train', batch_size=16):
     print(f"Total audio files: {total_files}\n")
     
     identifier = SpeakerIdentifier(batch_size=batch_size)
-    identifier.enroll_speakers(speaker_files, save_path=database_path)
+    identifier.enroll_speakers(speaker_files, save_path=database_path, preprocess_config=preprocess_config)
     
     print(f"\nEnrollment complete! Database saved to: {database_path}")
 
-def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID'):
+def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID', preprocess_config=None):
     """
     Identify speaker from a single audio file.
     
@@ -58,6 +76,7 @@ def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID'):
         label_dir: Directory containing labels
         dataset: Dataset name
         folder: Folder name (for display purposes)
+        preprocess_config: Optional PreprocessConfig for audio preprocessing
     """
     audio_filename = os.path.basename(audio_path)
     
@@ -77,13 +96,13 @@ def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID'):
     if not identifier.load_database(database_path):
         return
     
-    result = identifier.identify_speaker(audio_path, top_k=1)
+    result = identifier.identify_speaker(audio_path, top_k=1, preprocess_config=preprocess_config)
     
     if result:
         predicted_speaker, similarity = result
         display_comparison(audio_filename, reference_speaker, predicted_speaker, similarity)
 
-def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusion_matrix=False, folder='SID', verbose=False):
+def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusion_matrix=False, folder='SID', verbose=False, preprocess_config=None):
     """
     Identify speakers for multiple audio files.
     
@@ -95,6 +114,7 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
         show_confusion_matrix: Whether to display confusion matrix analysis
         folder: Folder name (for display purposes)
         verbose: Whether to show per-file status
+        preprocess_config: Optional PreprocessConfig for audio preprocessing
     """
     from modules.sid_evaluator import display_batch_summary_extended
     
@@ -110,7 +130,8 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
         print("No audio files with labels found")
         return
     
-    print(f"\nProcessing {len(pairs)} files...\n")
+    print(f"\nProcessing {len(pairs)} files...")
+    print(f"Preprocessing: {'Enabled' if preprocess_config else 'Disabled'}\n")
     
     identifier = SpeakerIdentifier()
     if not identifier.load_database(database_path):
@@ -122,7 +143,7 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
     for audio_path, reference_speaker in tqdm(pairs, desc="Identifying speakers", unit="file"):
         audio_filename = os.path.basename(audio_path)
         
-        top_k_results = identifier.identify_speaker(audio_path, top_k=5)
+        top_k_results = identifier.identify_speaker(audio_path, top_k=5, preprocess_config=preprocess_config)
         
         if top_k_results:
             predicted_speaker, similarity = top_k_results[0]
@@ -230,10 +251,18 @@ Examples:
         help='Show per-file status during batch processing. Default is summary only.'
     )
     
+    parser.add_argument(
+        '--preprocess',
+        action='store_true',
+        help='Enable audio preprocessing (mono conversion, resampling, DC removal, RMS normalization, trimming)'
+    )
+    
     args = parser.parse_args()
     
+    preprocess_config = get_preprocess_config(args.preprocess)
+    
     if args.enroll:
-        enroll_speakers(folder=args.folder, dataset=args.dataset, batch_size=args.batch_size)
+        enroll_speakers(folder=args.folder, dataset=args.dataset, batch_size=args.batch_size, preprocess_config=preprocess_config)
     elif args.file:
         audio_dir = config.get_folder_audio_path(args.folder, args.dataset)
         label_dir = config.get_folder_label_path(args.folder, args.dataset)
@@ -243,7 +272,7 @@ Examples:
             print(f"Error: Audio file not found: {audio_path}")
             sys.exit(1)
         
-        identify_single_file(audio_path, label_dir, dataset=args.dataset, folder=args.folder)
+        identify_single_file(audio_path, label_dir, dataset=args.dataset, folder=args.folder, preprocess_config=preprocess_config)
     else:
         audio_dir = config.get_folder_audio_path(args.folder, args.dataset)
         label_dir = config.get_folder_label_path(args.folder, args.dataset)
@@ -252,7 +281,7 @@ Examples:
         print(f"Audio directory: {audio_dir}")
         print(f"Label directory: {label_dir}")
         
-        identify_batch(audio_dir, label_dir, limit=args.batch, dataset=args.dataset, show_confusion_matrix=args.confusion_matrix, folder=args.folder, verbose=args.verbose)
+        identify_batch(audio_dir, label_dir, limit=args.batch, dataset=args.dataset, show_confusion_matrix=args.confusion_matrix, folder=args.folder, verbose=args.verbose, preprocess_config=preprocess_config)
 
 if __name__ == "__main__":
     main()

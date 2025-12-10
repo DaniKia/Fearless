@@ -177,7 +177,7 @@ def trim_silence(audio: np.ndarray, sample_rate: int,
         Trimmed audio waveform
     """
     trimmed, _ = librosa.effects.trim(audio, top_db=top_db)
-    return trimmed
+    return np.asarray(trimmed)
 
 
 def check_duration(audio: np.ndarray, sample_rate: int, 
