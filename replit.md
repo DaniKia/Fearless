@@ -44,10 +44,10 @@ The project prioritizes a command-line interface (CLI) for interaction, focusing
 
 ### Technical Implementations & Feature Specifications
 - **ASR Pipeline**: Utilizes OpenAI's Whisper for transcription, supporting various models. It includes Word Error Rate (WER) and Character Error Rate (CER) evaluation, side-by-side transcript comparison, and batch processing.
-- **Enrollment (`enroll.py`)**: Standalone script for speaker enrollment. Creates pkl files with speaker embeddings and metadata (preprocessing settings, dataset info, date). Supports configurable preprocessing via CLI flags. Metadata is stored inside the pkl for traceability.
-- **SID Pipeline (`sid_main.py`)**: Identifies speakers using pre-enrolled embeddings. Supports multiple embedding file comparison with `--embedding` flag. Reports display both enrollment metadata (from pkl) and identification settings.
-- **Audio Preprocessing**: Modular preprocessing pipeline with configurable steps for ablation studies. Enable via `--preprocess` flag in both enrollment and identification.
-- **Report Generation**: Automatic report generation when using `--embedding` flag. Reports include embedding filename, enrollment metadata (dataset, preprocessing settings used during enrollment), identification settings, and full SID output.
+- **Enrollment (`enroll.py`)**: Standalone script for speaker enrollment. Creates pkl files with speaker embeddings and metadata (preprocessing settings, dataset info, date). Supports configurable preprocessing via CLI flags. Supports multiple `--output` files for batch PKL creation with same settings.
+- **SID Pipeline (`sid_main.py`)**: Identifies speakers using pre-enrolled embeddings. **Preprocessing settings are automatically loaded from PKL metadata** - no separate `--preprocess` flag needed. When multiple PKLs are provided via `--embedding`, each runs with its own embedded preprocessing settings.
+- **Audio Preprocessing**: Modular preprocessing pipeline with configurable steps. `PreprocessConfig.from_dict()` converts PKL metadata back to config objects. Override capability is stubbed for future implementation.
+- **Report Generation**: Automatic report generation when using `--embedding` flag. Reports include embedding filename, enrollment metadata (with preprocessing settings), and confirmation of preprocessing source.
 - **Combined Pipeline**: Integrates both ASR and SID for simultaneous processing and evaluation.
 - **Flexible Folder Selection**: Supports processing various folders (e.g., ASR_track2, SID, SD_track2) from the Fearless Steps Challenge dataset using a `--folder` parameter.
 - **Data Handling**: Manages loading audio, transcripts, and speaker labels from a structured Google Drive dataset, with automatic detection of dataset types and corresponding label formats.
