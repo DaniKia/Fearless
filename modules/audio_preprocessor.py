@@ -52,6 +52,35 @@ class PreprocessConfig:
     def default(cls):
         """Return default preprocessing config."""
         return cls()
+    
+    @classmethod
+    def from_dict(cls, config_dict: dict):
+        """
+        Create PreprocessConfig from dictionary (as stored in PKL metadata).
+        
+        Args:
+            config_dict: Dictionary with preprocessing settings from PKL file
+            
+        Returns:
+            PreprocessConfig or None if preprocessing was disabled
+        """
+        if config_dict is None or not config_dict.get('enabled', False):
+            return None
+        
+        return cls(
+            enable_mono=config_dict.get('enable_mono', True),
+            enable_resample=config_dict.get('enable_resample', True),
+            target_sr=config_dict.get('target_sr', 16000),
+            enable_dc_removal=config_dict.get('enable_dc_removal', True),
+            enable_bandpass=config_dict.get('enable_bandpass', False),
+            highpass_cutoff=config_dict.get('highpass_cutoff', 80.0),
+            lowpass_cutoff=config_dict.get('lowpass_cutoff', 7500.0),
+            enable_rms_normalization=config_dict.get('enable_rms_normalization', True),
+            target_rms_db=config_dict.get('target_rms_db', -20.0),
+            enable_trim=config_dict.get('enable_trim', True),
+            trim_db=config_dict.get('trim_db', 25.0),
+            min_duration=config_dict.get('min_duration', 0.2)
+        )
 
 
 @dataclass

@@ -15,19 +15,25 @@ from modules.sid_evaluator import display_comparison, display_batch_summary, cre
 from modules.audio_preprocessor import PreprocessConfig
 
 
-def get_preprocess_config(enable_preprocessing):
+def get_preprocess_config_from_metadata(metadata, override_config=None):
     """
-    Get preprocessing configuration based on flag.
+    Extract preprocessing config from PKL metadata.
     
     Args:
-        enable_preprocessing: Whether to enable preprocessing
+        metadata: Metadata dictionary from PKL file
+        override_config: Reserved for future use - allows overriding PKL settings
         
     Returns:
-        PreprocessConfig or None
+        PreprocessConfig or None if preprocessing was disabled during enrollment
     """
-    if enable_preprocessing:
-        return PreprocessConfig.default()
-    return None
+    if override_config is not None:
+        return override_config
+    
+    if metadata is None:
+        return None
+    
+    preproc_dict = metadata.get('preprocessing', {})
+    return PreprocessConfig.from_dict(preproc_dict)
 
 
 def format_preprocess_settings(preprocess_config):
@@ -146,7 +152,7 @@ class ReportWriter:
                 f.write('\n'.join(self.lines))
             print(f"\nReport saved to: {self.report_path}")
 
-def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID', preprocess_config=None):
+def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID', embedding_path=None):
     """
     Identify speaker from a single audio file.
     
@@ -155,7 +161,7 @@ def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID', pre
         label_dir: Directory containing labels
         dataset: Dataset name
         folder: Folder name (for display purposes)
-        preprocess_config: Optional PreprocessConfig for audio preprocessing
+        embedding_path: Path to embedding PKL file (uses default if None)
     """
     audio_filename = os.path.basename(audio_path)
     
@@ -165,7 +171,7 @@ def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID', pre
         print(f"Error: No reference label found for {audio_filename}")
         return
     
-    database_path = config.get_speaker_database_path()
+    database_path = embedding_path or config.get_speaker_database_path()
     if not os.path.exists(database_path):
         print(f"Error: Speaker database not found at {database_path}")
         print("Please run enrollment first: python enroll.py --output speaker_database.pkl")
@@ -175,6 +181,12 @@ def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID', pre
     if not identifier.load_database(database_path):
         return
     
+    preprocess_config = get_preprocess_config_from_metadata(identifier.metadata)
+    if preprocess_config:
+        print("  Using preprocessing settings from PKL")
+    else:
+        print("  Preprocessing: Disabled")
+    
     result = identifier.identify_speaker(audio_path, top_k=1, preprocess_config=preprocess_config)
     
     if result:
@@ -182,10 +194,10 @@ def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID', pre
         display_comparison(audio_filename, reference_speaker, predicted_speaker, similarity)
 
 def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusion_matrix=False, 
-                   folder='SID', verbose=False, preprocess_config=None, embedding_path=None, 
-                   report_path=None):
+                   folder='SID', verbose=False, embedding_path=None, report_path=None):
     """
     Identify speakers for multiple audio files.
+    Uses preprocessing settings from the PKL file.
     
     Args:
         audio_dir: Directory with audio files
@@ -195,7 +207,6 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
         show_confusion_matrix: Whether to display confusion matrix analysis
         folder: Folder name (for display purposes)
         verbose: Whether to show per-file status
-        preprocess_config: Optional PreprocessConfig for audio preprocessing
         embedding_path: Custom path to embedding pkl file
         report_path: Path to save report file
     """
@@ -210,6 +221,8 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
     identifier = SpeakerIdentifier()
     if not identifier.load_database(database_path):
         return
+    
+    preprocess_config = get_preprocess_config_from_metadata(identifier.metadata)
     
     pairs = get_sid_files_with_labels(audio_dir, label_dir, limit=limit, dataset=dataset)
     
@@ -229,8 +242,10 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
     for line in format_enrollment_metadata(identifier.metadata):
         report.print(line)
     report.print("")
-    for line in format_preprocess_settings(preprocess_config):
-        report.print(line)
+    if preprocess_config:
+        report.print("Identification Preprocessing: Using settings from PKL")
+    else:
+        report.print("Identification Preprocessing: Disabled (raw audio)")
     report.print("=" * 60)
     report.print("")
     report.print(f"Processing {len(pairs)} files...")
@@ -289,15 +304,14 @@ Examples:
   python sid_main.py --folder SID --dataset Dev --embedding model_v1.pkl
   
   # Compare multiple embedding files (creates separate reports)
+  # Each PKL uses its own preprocessing settings from enrollment
   python sid_main.py --folder SID --dataset Dev --embedding baseline.pkl preprocessed.pkl
   
   # Custom report filename
   python sid_main.py --folder SID --dataset Dev --embedding model_v1.pkl --report my_results.txt
-  
-  # With identification preprocessing enabled
-  python sid_main.py --folder SID --dataset Dev --embedding model_v1.pkl --preprocess
 
-Note: Use enroll.py to create embedding pkl files before running identification.
+Note: Preprocessing settings are automatically loaded from each PKL file.
+      Use enroll.py to create embedding pkl files before running identification.
         """
     )
     
@@ -342,12 +356,6 @@ Note: Use enroll.py to create embedding pkl files before running identification.
     )
     
     parser.add_argument(
-        '--preprocess',
-        action='store_true',
-        help='Enable audio preprocessing (mono conversion, resampling, DC removal, RMS normalization, trimming)'
-    )
-    
-    parser.add_argument(
         '--embedding',
         type=str,
         nargs='+',
@@ -363,8 +371,6 @@ Note: Use enroll.py to create embedding pkl files before running identification.
     
     args = parser.parse_args()
     
-    preprocess_config = get_preprocess_config(args.preprocess)
-    
     if args.file:
         audio_dir = config.get_folder_audio_path(args.folder, args.dataset)
         label_dir = config.get_folder_label_path(args.folder, args.dataset)
@@ -374,7 +380,11 @@ Note: Use enroll.py to create embedding pkl files before running identification.
             print(f"Error: Audio file not found: {audio_path}")
             sys.exit(1)
         
-        identify_single_file(audio_path, label_dir, dataset=args.dataset, folder=args.folder, preprocess_config=preprocess_config)
+        if args.embedding and len(args.embedding) > 1:
+            print("Warning: Single file mode only supports one embedding file. Using first one.")
+        
+        embedding_path = args.embedding[0] if args.embedding else None
+        identify_single_file(audio_path, label_dir, dataset=args.dataset, folder=args.folder, embedding_path=embedding_path)
     else:
         audio_dir = config.get_folder_audio_path(args.folder, args.dataset)
         label_dir = config.get_folder_label_path(args.folder, args.dataset)
@@ -409,7 +419,6 @@ Note: Use enroll.py to create embedding pkl files before running identification.
                 show_confusion_matrix=args.confusion_matrix, 
                 folder=args.folder, 
                 verbose=args.verbose, 
-                preprocess_config=preprocess_config,
                 embedding_path=embedding_path,
                 report_path=report_path
             )

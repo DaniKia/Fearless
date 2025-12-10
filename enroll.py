@@ -149,6 +149,9 @@ Examples:
   # Custom preprocessing settings
   python enroll.py --preprocess --bandpass --highpass 100 --lowpass 7000 --output custom.pkl
 
+  # Multiple output files (same preprocessing settings for all)
+  python enroll.py --preprocess --bandpass --output config_a.pkl config_b.pkl config_c.pkl
+
   # Different dataset
   python enroll.py --folder SID --dataset Train --output sid_train.pkl
         """
@@ -158,8 +161,8 @@ Examples:
                         help='Folder name (SID, ASR_track2, SD_track2, etc.)')
     parser.add_argument('--dataset', type=str, default='Train',
                         help='Dataset to use (Train, Dev, Eval)')
-    parser.add_argument('--output', '-o', type=str, required=True,
-                        help='Output pkl file path (required)')
+    parser.add_argument('--output', '-o', type=str, nargs='+', required=True,
+                        help='Output pkl file path(s). Can specify multiple files.')
     parser.add_argument('--batch-size', type=int, default=16,
                         help='GPU batch size (default: 16)')
     
@@ -187,15 +190,27 @@ Examples:
     
     preprocess_config = create_preprocess_config(args)
     
-    success = enroll_speakers(
-        folder=args.folder,
-        dataset=args.dataset,
-        output_path=args.output,
-        batch_size=args.batch_size,
-        preprocess_config=preprocess_config
-    )
+    output_files = args.output
+    all_success = True
     
-    return 0 if success else 1
+    for i, output_path in enumerate(output_files):
+        if len(output_files) > 1:
+            print(f"\n{'#'*60}")
+            print(f"# Creating PKL {i+1}/{len(output_files)}: {output_path}")
+            print(f"{'#'*60}")
+        
+        success = enroll_speakers(
+            folder=args.folder,
+            dataset=args.dataset,
+            output_path=output_path,
+            batch_size=args.batch_size,
+            preprocess_config=preprocess_config
+        )
+        
+        if not success:
+            all_success = False
+    
+    return 0 if all_success else 1
 
 
 if __name__ == '__main__':
