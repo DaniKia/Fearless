@@ -44,9 +44,10 @@ The project prioritizes a command-line interface (CLI) for interaction, focusing
 
 ### Technical Implementations & Feature Specifications
 - **ASR Pipeline**: Utilizes OpenAI's Whisper for transcription, supporting various models. It includes Word Error Rate (WER) and Character Error Rate (CER) evaluation, side-by-side transcript comparison, and batch processing.
-- **SID Pipeline**: Leverages pre-trained SpeechBrain ECAPA embeddings for speaker enrollment and identification. It supports GPU-accelerated batch processing for enrollment, provides accuracy metrics (including Top-K and per-speaker precision), and generates confusion matrices for error analysis. Closed-set identification uses cosine similarity and includes resumable enrollment with per-speaker checkpointing. Supports multiple embedding file comparison with `--embedding` flag and auto-generated reports.
-- **Audio Preprocessing**: Modular preprocessing pipeline with configurable steps for ablation studies. Enable via `--preprocess` flag.
-- **Report Generation**: Automatic report generation when using `--embedding` flag. Reports include embedding filename, dataset info, preprocessing settings, and full SID output. Report files auto-named after pkl file (e.g., model_v1.pkl → model_v1_sid_report.txt).
+- **Enrollment (`enroll.py`)**: Standalone script for speaker enrollment. Creates pkl files with speaker embeddings and metadata (preprocessing settings, dataset info, date). Supports configurable preprocessing via CLI flags. Metadata is stored inside the pkl for traceability.
+- **SID Pipeline (`sid_main.py`)**: Identifies speakers using pre-enrolled embeddings. Supports multiple embedding file comparison with `--embedding` flag. Reports display both enrollment metadata (from pkl) and identification settings.
+- **Audio Preprocessing**: Modular preprocessing pipeline with configurable steps for ablation studies. Enable via `--preprocess` flag in both enrollment and identification.
+- **Report Generation**: Automatic report generation when using `--embedding` flag. Reports include embedding filename, enrollment metadata (dataset, preprocessing settings used during enrollment), identification settings, and full SID output.
 - **Combined Pipeline**: Integrates both ASR and SID for simultaneous processing and evaluation.
 - **Flexible Folder Selection**: Supports processing various folders (e.g., ASR_track2, SID, SD_track2) from the Fearless Steps Challenge dataset using a `--folder` parameter.
 - **Data Handling**: Manages loading audio, transcripts, and speaker labels from a structured Google Drive dataset, with automatic detection of dataset types and corresponding label formats.

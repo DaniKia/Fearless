@@ -9,7 +9,7 @@ import argparse
 import config
 from datetime import datetime
 from tqdm import tqdm
-from modules.data_loader import group_audio_by_speaker, get_sid_files_with_labels, load_sid_label
+from modules.data_loader import get_sid_files_with_labels, load_sid_label
 from modules.speaker_identifier import SpeakerIdentifier
 from modules.sid_evaluator import display_comparison, display_batch_summary, create_confusion_matrix, display_top_confusions
 from modules.audio_preprocessor import PreprocessConfig
@@ -41,9 +41,9 @@ def format_preprocess_settings(preprocess_config):
         List of formatted setting strings
     """
     if preprocess_config is None:
-        return ["Preprocessing: Disabled (raw audio)"]
+        return ["Identification Preprocessing: Disabled (raw audio)"]
     
-    lines = ["Preprocessing Settings:"]
+    lines = ["Identification Preprocessing:"]
     
     if preprocess_config.enable_mono:
         lines.append("  Mono Conversion:     Enabled")
@@ -74,6 +74,40 @@ def format_preprocess_settings(preprocess_config):
         lines.append(f"  Silence Trimming:    Enabled (threshold={preprocess_config.trim_db} dB)")
     else:
         lines.append("  Silence Trimming:    Disabled")
+    
+    return lines
+
+
+def format_enrollment_metadata(metadata):
+    """
+    Format enrollment metadata from pkl file for report output.
+    
+    Args:
+        metadata: Metadata dictionary from pkl file or None
+        
+    Returns:
+        List of formatted setting strings
+    """
+    if metadata is None:
+        return ["Enrollment Info: Unknown (legacy pkl format)"]
+    
+    lines = ["Enrollment Info:"]
+    lines.append(f"  Source Dataset:      {metadata.get('folder', 'N/A')}/{metadata.get('dataset', 'N/A')}")
+    lines.append(f"  Enrollment Date:     {metadata.get('date', 'N/A')}")
+    lines.append(f"  Speakers Enrolled:   {metadata.get('num_speakers', 'N/A')}")
+    lines.append(f"  Files Processed:     {metadata.get('num_files', 'N/A')}")
+    
+    preproc = metadata.get('preprocessing', {})
+    if not preproc.get('enabled', False):
+        lines.append("  Enrollment Preproc:  Disabled (raw audio)")
+    else:
+        lines.append("  Enrollment Preproc:  Enabled")
+        if preproc.get('enable_bandpass'):
+            lines.append(f"    Bandpass Filter:   {preproc.get('highpass_cutoff', 80)}-{preproc.get('lowpass_cutoff', 7500)} Hz")
+        if preproc.get('enable_rms_normalization'):
+            lines.append(f"    RMS Normalization: {preproc.get('target_rms_db', -20)} dB")
+        if preproc.get('enable_trim'):
+            lines.append(f"    Silence Trimming:  {preproc.get('trim_db', 30)} dB threshold")
     
     return lines
 
@@ -112,45 +146,6 @@ class ReportWriter:
                 f.write('\n'.join(self.lines))
             print(f"\nReport saved to: {self.report_path}")
 
-def enroll_speakers(folder='SID', dataset='Train', batch_size=16, preprocess_config=None):
-    """
-    Enroll speakers from the training dataset.
-    
-    Args:
-        folder: Folder name (SID, ASR_track2, SD_track2, etc.)
-        dataset: Dataset to use for enrollment (default: Train)
-        batch_size: Number of files to process per GPU batch (default: 16)
-        preprocess_config: Optional PreprocessConfig for audio preprocessing
-    """
-    print(f"\n{'='*60}")
-    print(f"Speaker Enrollment - {folder}/{dataset} Dataset")
-    print(f"{'='*60}\n")
-    
-    audio_dir = config.get_folder_audio_path(folder, dataset)
-    label_dir = config.get_folder_label_path(folder, dataset)
-    database_path = config.get_speaker_database_path()
-    
-    print(f"Folder: {folder}")
-    print(f"Audio directory: {audio_dir}")
-    print(f"Label directory: {label_dir}")
-    print(f"Database will be saved to: {database_path}")
-    print(f"Preprocessing: {'Enabled' if preprocess_config else 'Disabled'}\n")
-    
-    speaker_files = group_audio_by_speaker(audio_dir, label_dir, dataset=dataset)
-    
-    if not speaker_files:
-        print("Error: No speaker files found for enrollment")
-        return
-    
-    print(f"Found {len(speaker_files)} unique speakers")
-    total_files = sum(len(files) for files in speaker_files.values())
-    print(f"Total audio files: {total_files}\n")
-    
-    identifier = SpeakerIdentifier(batch_size=batch_size)
-    identifier.enroll_speakers(speaker_files, save_path=database_path, preprocess_config=preprocess_config)
-    
-    print(f"\nEnrollment complete! Database saved to: {database_path}")
-
 def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID', preprocess_config=None):
     """
     Identify speaker from a single audio file.
@@ -173,7 +168,7 @@ def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID', pre
     database_path = config.get_speaker_database_path()
     if not os.path.exists(database_path):
         print(f"Error: Speaker database not found at {database_path}")
-        print("Please run enrollment first: python sid_main.py --enroll")
+        print("Please run enrollment first: python enroll.py --output speaker_database.pkl")
         return
     
     identifier = SpeakerIdentifier()
@@ -209,7 +204,11 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
     database_path = embedding_path or config.get_speaker_database_path()
     if not os.path.exists(database_path):
         print(f"Error: Speaker database not found at {database_path}")
-        print("Please run enrollment first: python sid_main.py --enroll")
+        print("Please run enrollment first: python enroll.py --output speaker_database.pkl")
+        return
+    
+    identifier = SpeakerIdentifier()
+    if not identifier.load_database(database_path):
         return
     
     pairs = get_sid_files_with_labels(audio_dir, label_dir, limit=limit, dataset=dataset)
@@ -224,18 +223,17 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
     report.print("Speaker Identification Report")
     report.print("=" * 60)
     report.print(f"Embedding File: {os.path.basename(database_path)}")
-    report.print(f"Dataset: {folder}/{dataset}")
-    report.print(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    report.print(f"Test Dataset: {folder}/{dataset}")
+    report.print(f"Run Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    report.print("")
+    for line in format_enrollment_metadata(identifier.metadata):
+        report.print(line)
     report.print("")
     for line in format_preprocess_settings(preprocess_config):
         report.print(line)
     report.print("=" * 60)
     report.print("")
     report.print(f"Processing {len(pairs)} files...")
-    
-    identifier = SpeakerIdentifier()
-    if not identifier.load_database(database_path):
-        return
     
     results = []
     correct_count = 0
@@ -274,46 +272,33 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Speaker Identification (SID) Pipeline',
+        description='Speaker Identification (SID) Pipeline - Identify speakers using pre-enrolled embeddings',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Enroll speakers from SID folder Train dataset (one-time setup)
-  python sid_main.py --enroll --folder SID --dataset Train
-  
-  # Enroll from ASR_track2
-  python sid_main.py --enroll --folder ASR_track2 --dataset Train
-  
-  # Enroll with custom GPU batch size (tune based on GPU memory)
-  python sid_main.py --enroll --folder SID --dataset Train --batch-size 32
-  
-  # Identify speaker from single file (default folder: SID)
+  # Identify speaker from single file
   python sid_main.py --file fsc_p3_SID_dev_0010.wav
   
-  # Process all files in Dev set from SID folder
+  # Process all files in Dev set
   python sid_main.py --folder SID --dataset Dev
   
-  # Process all files from ASR_track2 with confusion matrix
+  # Process with confusion matrix analysis
   python sid_main.py --folder ASR_track2 --dataset Dev --confusion-matrix
   
-  # Use a specific embedding file (creates model_v1_sid_report.txt)
+  # Use a specific embedding file (auto-generates report)
   python sid_main.py --folder SID --dataset Dev --embedding model_v1.pkl
   
-  # Compare multiple embedding files (creates separate reports for each)
-  python sid_main.py --folder SID --dataset Dev --embedding model_v1.pkl model_v2.pkl
+  # Compare multiple embedding files (creates separate reports)
+  python sid_main.py --folder SID --dataset Dev --embedding baseline.pkl preprocessed.pkl
   
   # Custom report filename
   python sid_main.py --folder SID --dataset Dev --embedding model_v1.pkl --report my_results.txt
   
-  # With preprocessing enabled
+  # With identification preprocessing enabled
   python sid_main.py --folder SID --dataset Dev --embedding model_v1.pkl --preprocess
+
+Note: Use enroll.py to create embedding pkl files before running identification.
         """
-    )
-    
-    parser.add_argument(
-        '--enroll',
-        action='store_true',
-        help='Enroll speakers from the dataset (required before identification)'
     )
     
     parser.add_argument(
@@ -326,7 +311,7 @@ Examples:
         '--batch',
         type=int,
         default=None,
-        help='Number of files to identify for testing. If not specified, processes all files in dataset. Used without --enroll flag.'
+        help='Number of files to identify for testing. If not specified, processes all files in dataset.'
     )
     
     parser.add_argument(
@@ -342,13 +327,6 @@ Examples:
         default='Dev',
         choices=['Dev', 'Train', 'Eval'],
         help='Dataset to use (default: Dev)'
-    )
-    
-    parser.add_argument(
-        '--batch-size',
-        type=int,
-        default=16,
-        help='GPU batch size for enrollment: how many audio files to process simultaneously (default: 16). Only used with --enroll flag. Increase for more GPU memory, decrease if you get OOM errors.'
     )
     
     parser.add_argument(
@@ -387,9 +365,7 @@ Examples:
     
     preprocess_config = get_preprocess_config(args.preprocess)
     
-    if args.enroll:
-        enroll_speakers(folder=args.folder, dataset=args.dataset, batch_size=args.batch_size, preprocess_config=preprocess_config)
-    elif args.file:
+    if args.file:
         audio_dir = config.get_folder_audio_path(args.folder, args.dataset)
         label_dir = config.get_folder_label_path(args.folder, args.dataset)
         audio_path = os.path.join(audio_dir, args.file)
