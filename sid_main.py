@@ -218,24 +218,20 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
         print("No audio files with labels found")
         return
     
-    report = ReportWriter(report_path) if report_path else None
+    report = ReportWriter(report_path)
     
-    if report:
-        report.print("=" * 60)
-        report.print("Speaker Identification Report")
-        report.print("=" * 60)
-        report.print(f"Embedding File: {os.path.basename(database_path)}")
-        report.print(f"Dataset: {folder}/{dataset}")
-        report.print(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        report.print("")
-        for line in format_preprocess_settings(preprocess_config):
-            report.print(line)
-        report.print("=" * 60)
-        report.print("")
-        report.print(f"Processing {len(pairs)} files...")
-    else:
-        print(f"\nProcessing {len(pairs)} files...")
-        print(f"Preprocessing: {'Enabled' if preprocess_config else 'Disabled'}\n")
+    report.print("=" * 60)
+    report.print("Speaker Identification Report")
+    report.print("=" * 60)
+    report.print(f"Embedding File: {os.path.basename(database_path)}")
+    report.print(f"Dataset: {folder}/{dataset}")
+    report.print(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    report.print("")
+    for line in format_preprocess_settings(preprocess_config):
+        report.print(line)
+    report.print("=" * 60)
+    report.print("")
+    report.print(f"Processing {len(pairs)} files...")
     
     identifier = SpeakerIdentifier()
     if not identifier.load_database(database_path):
@@ -270,11 +266,11 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
             })
     
     if results:
-        summary_output = display_batch_summary_extended(results, show_confusion_matrix=show_confusion_matrix, return_output=report is not None)
-        if report and summary_output:
+        summary_output = display_batch_summary_extended(results, show_confusion_matrix=show_confusion_matrix, return_output=True)
+        if summary_output:
             for line in summary_output:
                 report.lines.append(line)
-            report.save()
+        report.save()
 
 def main():
     parser = argparse.ArgumentParser(
