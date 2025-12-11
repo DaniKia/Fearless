@@ -1,0 +1,98 @@
+############################
+# 0. Common args (conceptual)
+############################
+# Use these in every command:
+# --folder SID --dataset Train --batch-size 32
+
+##################################
+# 1. Baseline vs Full Preprocess
+##################################
+
+# 1. Baseline (no preprocessing)
+!python enroll.py --folder SID --dataset Train --batch-size 32 \
+  --output /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/baseline.pkl
+
+# 2. Full preprocess (default)
+!python enroll.py --folder SID --dataset Train --batch-size 32 \
+  --preprocess \
+  --bandpass --highpass 80 --lowpass 7500 \
+  --rms-norm --rms-db -20.0 \
+  --trim --trim-db 30.0 \
+  --output /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/full_preprocess.pkl
+
+
+#############################
+# 2. “Early” steps: ON alone
+#############################
+
+# 3. MONO-ONLY
+!python enroll.py --folder SID --dataset Train --batch-size 32 \
+  --preprocess --mono \
+  --output /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/mono_only.pkl
+
+# 4. RESAMPLE-ONLY
+!python enroll.py --folder SID --dataset Train --batch-size 32 \
+  --preprocess --resample \
+  --output /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/resample_only.pkl
+
+# 5. DC-ONLY
+!python enroll.py --folder SID --dataset Train --batch-size 32 \
+  --preprocess --dc-removal \
+  --output /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/dc_only.pkl
+
+
+#####################################
+# 3. Bandpass: ON alone + variations
+#####################################
+
+# 6. BANDPASS-ONLY (80–7500 Hz)
+!python enroll.py --folder SID --dataset Train --batch-size 32 \
+  --preprocess \
+  --bandpass --highpass 80 --lowpass 7500 \
+  --output /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/bandpass_only_80_7500.pkl
+
+# 7. BP-TEL (300–3400 Hz)
+!python enroll.py --folder SID --dataset Train --batch-size 32 \
+  --preprocess \
+  --bandpass --highpass 300 --lowpass 3400 \
+  --output /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/bandpass_tel_300_3400.pkl
+
+# 8. BP-6k (80–6000 Hz)
+!python enroll.py --folder SID --dataset Train --batch-size 32 \
+  --preprocess \
+  --bandpass --highpass 80 --lowpass 6000 \
+  --output /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/bandpass_80_6000.pkl
+
+
+###################################
+# 4. RMS-NORM: ON alone + variant
+###################################
+
+# 9. RMS-ONLY (-20 dB)
+!python enroll.py --folder SID --dataset Train --batch-size 32 \
+  --preprocess \
+  --rms-norm --rms-db -20.0 \
+  --output /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/rms_only_20.pkl
+
+# 10. RMS-ONLY (-25 dB)
+!python enroll.py --folder SID --dataset Train --batch-size 32 \
+  --preprocess \
+  --rms-norm --rms-db -25.0 \
+  --output /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/rms_only_25.pkl
+
+
+#############################
+# 5. TRIM: ON alone + variant
+#############################
+
+# 11. TRIM-ONLY (30 dB)
+!python enroll.py --folder SID --dataset Train --batch-size 32 \
+  --preprocess \
+  --trim --trim-db 30.0 \
+  --output /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/trim_only_30.pkl
+
+# 12. TRIM-ONLY (20 dB, more aggressive)
+!python enroll.py --folder SID --dataset Train --batch-size 32 \
+  --preprocess \
+  --trim --trim-db 20.0 \
+  --output /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/trim_only_20.pkl

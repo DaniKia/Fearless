@@ -26,10 +26,10 @@ def create_preprocess_config(args):
         return None
     
     return PreprocessConfig(
-        enable_mono=True,
-        enable_resample=True,
+        enable_mono=args.mono,
+        enable_resample=args.resample,
         target_sr=args.target_sr,
-        enable_dc_removal=True,
+        enable_dc_removal=args.dc_removal,
         enable_bandpass=args.bandpass,
         highpass_cutoff=args.highpass,
         lowpass_cutoff=args.lowpass,
@@ -169,8 +169,14 @@ Examples:
     preprocess_group = parser.add_argument_group('Preprocessing Options')
     preprocess_group.add_argument('--preprocess', action='store_true',
                                    help='Enable audio preprocessing')
+    preprocess_group.add_argument('--mono', action='store_true',
+                                   help='Enable mono conversion')
+    preprocess_group.add_argument('--resample', action='store_true',
+                                   help='Enable resampling to target sample rate')
     preprocess_group.add_argument('--target-sr', type=int, default=16000,
                                    help='Target sample rate (default: 16000)')
+    preprocess_group.add_argument('--dc-removal', action='store_true',
+                                   help='Enable DC offset removal')
     preprocess_group.add_argument('--bandpass', action='store_true',
                                    help='Enable bandpass filter')
     preprocess_group.add_argument('--highpass', type=int, default=80,
