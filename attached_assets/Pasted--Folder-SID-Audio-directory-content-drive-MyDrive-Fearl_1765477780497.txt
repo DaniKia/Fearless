@@ -1,0 +1,54 @@
+
+Folder: SID
+Audio directory: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/SID/Dev
+Label directory: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Transcripts/SID
+
+############################################################
+# Processing embedding 1/12: baseline.pkl
+############################################################
+Loaded speaker database with 218 speakers
+  Enrollment: SID/Train
+  Date: 2025-12-11 07:57:31
+  Preprocessing: Disabled
+Loaded 6373 SID labels from Dev dataset
+============================================================
+Speaker Identification Report
+============================================================
+Embedding File: baseline.pkl
+Test Dataset: SID/Dev
+Run Date: 2025-12-11 18:20:40
+
+Enrollment Info:
+  Source Dataset:      SID/Train
+  Enrollment Date:     2025-12-11 07:57:31
+  Speakers Enrolled:   218
+  Files Processed:     27336
+  Enrollment Preproc:  Disabled (raw audio)
+
+Identification Preprocessing: Disabled (raw audio)
+============================================================
+
+Processing 6373 files...
+Identifying speakers:   0% 0/6373 [00:00<?, ?file/s]/usr/local/lib/python3.12/dist-packages/torch/backends/__init__.py:46: UserWarning: Please use the new API settings to control TF32 behavior, such as torch.backends.cudnn.conv.fp32_precision = 'tf32' or torch.backends.cuda.matmul.fp32_precision = 'ieee'. Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  self.setter(val)
+Loading speaker embedding model: speechbrain/spkrec-ecapa-voxceleb
+Using device: cuda
+
+hyperparams.yaml: 1.92kB [00:00, 9.80MB/s]
+/usr/local/lib/python3.12/dist-packages/speechbrain/utils/autocast.py:188: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  wrapped_fwd = torch.cuda.amp.custom_fwd(fwd, cast_inputs=cast_inputs)
+
+embedding_model.ckpt:   0% 0.00/83.3M [00:00<?, ?B/s]
+embedding_model.ckpt:  19% 16.2M/83.3M [00:00<00:02, 23.5MB/s]
+embedding_model.ckpt: 100% 83.3M/83.3M [00:00<00:00, 85.3MB/s]
+
+mean_var_norm_emb.ckpt: 100% 1.92k/1.92k [00:00<00:00, 12.4MB/s]
+
+classifier.ckpt:   0% 0.00/5.53M [00:00<?, ?B/s]
+classifier.ckpt: 100% 5.53M/5.53M [00:00<00:00, 23.2MB/s]
+
+label_encoder.txt: 129kB [00:00, 103MB/s]
+Model loaded successfully!
+Identifying speakers: 100% 6373/6373 [04:46<00:00, 22.25file/s]
+
+=======================
