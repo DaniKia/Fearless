@@ -324,6 +324,10 @@ class SpeakerIdentifier:
                 print(f"  Date: {self.metadata.get('date', 'N/A')}")
                 preproc = self.metadata.get('preprocessing', {})
                 print(f"  Preprocessing: {'Enabled' if preproc.get('enabled') else 'Disabled'}")
+                norm_method = self.metadata.get('normalize_method')
+                if norm_method:
+                    self.normalize_method = norm_method
+                    print(f"  Normalization: {norm_method}")
             else:
                 print("  (Legacy format - no metadata)")
             return True
@@ -354,6 +358,9 @@ class SpeakerIdentifier:
         test_embedding = self.extract_embedding_from_waveform(audio, sample_rate)
         if test_embedding is None:
             return None
+        
+        if self.normalize_method in ('l2', 'l2-centered'):
+            test_embedding = normalize_embedding(test_embedding, 'l2')
         
         similarities = {}
         for speaker_id, speaker_embedding in self.speaker_database.items():

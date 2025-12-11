@@ -71,7 +71,7 @@ def config_to_dict(preprocess_config):
     }
 
 
-def enroll_speakers(folder, dataset, output_path, batch_size=16, preprocess_config=None):
+def enroll_speakers(folder, dataset, output_path, batch_size=16, preprocess_config=None, normalize_method=None):
     """
     Enroll speakers from the training dataset.
     
@@ -81,6 +81,7 @@ def enroll_speakers(folder, dataset, output_path, batch_size=16, preprocess_conf
         output_path: Path to save the output pkl file
         batch_size: Number of files to process per GPU batch
         preprocess_config: Optional PreprocessConfig for audio preprocessing
+        normalize_method: Embedding normalization method ('l2', 'l2-centered', or None)
         
     Returns:
         True if successful, False otherwise
@@ -96,7 +97,8 @@ def enroll_speakers(folder, dataset, output_path, batch_size=16, preprocess_conf
     print(f"Audio directory: {audio_dir}")
     print(f"Label directory: {label_dir}")
     print(f"Output file: {output_path}")
-    print(f"Preprocessing: {'Enabled' if preprocess_config else 'Disabled'}\n")
+    print(f"Preprocessing: {'Enabled' if preprocess_config else 'Disabled'}")
+    print(f"Normalization: {normalize_method or 'None'}\n")
     
     speaker_files = group_audio_by_speaker(audio_dir, label_dir, dataset=dataset)
     
@@ -115,10 +117,11 @@ def enroll_speakers(folder, dataset, output_path, batch_size=16, preprocess_conf
         'num_speakers': len(speaker_files),
         'num_files': total_files,
         'batch_size': batch_size,
-        'preprocessing': config_to_dict(preprocess_config)
+        'preprocessing': config_to_dict(preprocess_config),
+        'normalize_method': normalize_method
     }
     
-    identifier = SpeakerIdentifier(batch_size=batch_size)
+    identifier = SpeakerIdentifier(batch_size=batch_size, normalize_method=normalize_method)
     embeddings = identifier.enroll_speakers(
         speaker_files, 
         save_path=output_path, 
@@ -140,20 +143,20 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Basic enrollment (no preprocessing)
+  # Basic enrollment (no preprocessing, no normalization)
   python enroll.py --output baseline.pkl
 
-  # Enrollment with default preprocessing
-  python enroll.py --preprocess --output preprocessed.pkl
+  # Enrollment with preprocessing and L2 normalization (recommended)
+  python enroll.py --preprocess --resample --normalize l2 --output enrolled.pkl
 
-  # Custom preprocessing settings
-  python enroll.py --preprocess --bandpass --highpass 100 --lowpass 7000 --output custom.pkl
+  # Custom preprocessing with L2-centered normalization
+  python enroll.py --preprocess --bandpass --highpass 100 --lowpass 7000 --normalize l2-centered --output custom.pkl
 
-  # Multiple output files (same preprocessing settings for all)
-  python enroll.py --preprocess --bandpass --output config_a.pkl config_b.pkl config_c.pkl
+  # Multiple output files
+  python enroll.py --preprocess --normalize l2 --output config_a.pkl config_b.pkl
 
   # Different dataset
-  python enroll.py --folder SID --dataset Train --output sid_train.pkl
+  python enroll.py --folder SID --dataset Train --normalize l2 --output sid_train.pkl
         """
     )
     
@@ -192,6 +195,11 @@ Examples:
     preprocess_group.add_argument('--trim-db', type=float, default=30.0,
                                    help='Trim threshold in dB (default: 30)')
     
+    embedding_group = parser.add_argument_group('Embedding Options')
+    embedding_group.add_argument('--normalize', type=str, default=None,
+                                  choices=['l2', 'l2-centered'],
+                                  help='Embedding normalization method (l2 recommended)')
+    
     args = parser.parse_args()
     
     preprocess_config = create_preprocess_config(args)
@@ -210,7 +218,8 @@ Examples:
             dataset=args.dataset,
             output_path=output_path,
             batch_size=args.batch_size,
-            preprocess_config=preprocess_config
+            preprocess_config=preprocess_config,
+            normalize_method=args.normalize
         )
         
         if not success:
