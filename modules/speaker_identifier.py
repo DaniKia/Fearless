@@ -137,13 +137,17 @@ class SpeakerIdentifier:
         processed_speakers = set()
 
         if save_path and os.path.exists(save_path):
-            print(f"Existing database found at {save_path}. Resuming enrollment...")
-            if self.load_database(save_path):
-                speaker_database = self.speaker_database or {}
-                processed_speakers = set(speaker_database.keys())
+            if self.normalize_method == 'l2-centered':
+                print(f"Warning: l2-centered normalization requires fresh enrollment.")
+                print(f"         Existing database at {save_path} will be overwritten.")
             else:
-                print("Warning: Failed to load existing database. Starting fresh enrollment.")
-                speaker_database = {}
+                print(f"Existing database found at {save_path}. Resuming enrollment...")
+                if self.load_database(save_path):
+                    speaker_database = self.speaker_database or {}
+                    processed_speakers = set(speaker_database.keys())
+                else:
+                    print("Warning: Failed to load existing database. Starting fresh enrollment.")
+                    speaker_database = {}
 
         self.speaker_database = speaker_database
         self.metadata = metadata
@@ -167,33 +171,39 @@ class SpeakerIdentifier:
             print(f"Embedding normalization: {self.normalize_method}")
         print(f"{'='*60}\n")
         
-        speaker_count = 0
-        with tqdm(total=total_files, desc="Processing audio files", unit="file", initial=processed_files) as pbar:
-            for speaker_id, audio_files in speaker_files_dict.items():
-                speaker_count += 1
-                num_files = len(audio_files)
-                pbar.set_description(f"[{speaker_count}/{total_speakers}] {speaker_id} ({num_files} files)")
+        if self.normalize_method == 'l2-centered':
+            speaker_database, all_embeddings_flat = self._enroll_two_pass(
+                speaker_files_dict, processed_speakers, total_speakers, total_files, 
+                processed_files, preprocess_config, save_path
+            )
+        else:
+            speaker_count = 0
+            with tqdm(total=total_files, desc="Processing audio files", unit="file", initial=processed_files) as pbar:
+                for speaker_id, audio_files in speaker_files_dict.items():
+                    speaker_count += 1
+                    num_files = len(audio_files)
+                    pbar.set_description(f"[{speaker_count}/{total_speakers}] {speaker_id} ({num_files} files)")
 
-                if speaker_id in processed_speakers:
-                    continue
+                    if speaker_id in processed_speakers:
+                        continue
 
-                embeddings = self._process_files_in_batches(audio_files, pbar, preprocess_config)
+                    embeddings = self._process_files_in_batches(audio_files, pbar, preprocess_config)
 
-                if embeddings:
-                    if self.normalize_method == 'l2':
-                        embeddings = [normalize_embedding(emb, 'l2') for emb in embeddings]
-                    
-                    avg_embedding = np.mean(embeddings, axis=0)
-                    
-                    if self.normalize_method in ('l2', 'l2-centered'):
-                        avg_embedding = normalize_embedding(avg_embedding, 'l2')
-                    
-                    speaker_database[speaker_id] = avg_embedding
-                    self.speaker_database = speaker_database
-                    if save_path:
-                        self.save_database(save_path)
-                else:
-                    print(f"\nWarning: No valid embeddings for speaker {speaker_id}")
+                    if embeddings:
+                        if self.normalize_method == 'l2':
+                            embeddings = [normalize_embedding(emb, 'l2') for emb in embeddings]
+                        
+                        avg_embedding = np.mean(embeddings, axis=0)
+                        
+                        if self.normalize_method == 'l2':
+                            avg_embedding = normalize_embedding(avg_embedding, 'l2')
+                        
+                        speaker_database[speaker_id] = avg_embedding
+                        self.speaker_database = speaker_database
+                        if save_path:
+                            self.save_database(save_path)
+                    else:
+                        print(f"\nWarning: No valid embeddings for speaker {speaker_id}")
 
         print(f"\n{'='*60}")
         print(f"Enrollment complete!")
@@ -201,6 +211,59 @@ class SpeakerIdentifier:
         print(f"{'='*60}\n")
         
         return speaker_database
+    
+    def _enroll_two_pass(self, speaker_files_dict, processed_speakers, total_speakers, 
+                         total_files, processed_files, preprocess_config, save_path):
+        """
+        Two-pass enrollment for l2-centered normalization.
+        Pass 1: Collect all embeddings and compute global mean
+        Pass 2: Center embeddings, compute centroids, and normalize
+        """
+        speaker_embeddings_raw = {}
+        all_embeddings_flat = []
+        
+        print("Pass 1: Extracting embeddings and computing global mean...")
+        speaker_count = 0
+        with tqdm(total=total_files, desc="Extracting embeddings", unit="file", initial=processed_files) as pbar:
+            for speaker_id, audio_files in speaker_files_dict.items():
+                speaker_count += 1
+                num_files = len(audio_files)
+                pbar.set_description(f"[{speaker_count}/{total_speakers}] {speaker_id} ({num_files} files)")
+                
+                if speaker_id in processed_speakers:
+                    continue
+                
+                embeddings = self._process_files_in_batches(audio_files, pbar, preprocess_config)
+                
+                if embeddings:
+                    speaker_embeddings_raw[speaker_id] = embeddings
+                    all_embeddings_flat.extend(embeddings)
+                else:
+                    print(f"\nWarning: No valid embeddings for speaker {speaker_id}")
+        
+        if not all_embeddings_flat:
+            return {}, []
+        
+        self.global_mean = np.mean(all_embeddings_flat, axis=0)
+        print(f"Global mean computed from {len(all_embeddings_flat)} embeddings")
+        
+        print("Pass 2: Centering and normalizing...")
+        speaker_database = self.speaker_database or {}
+        
+        for speaker_id, embeddings in tqdm(speaker_embeddings_raw.items(), desc="Computing centroids"):
+            centered_embeddings = [emb - self.global_mean for emb in embeddings]
+            normalized_embeddings = [normalize_embedding(emb, 'l2') for emb in centered_embeddings]
+            
+            avg_embedding = np.mean(normalized_embeddings, axis=0)
+            avg_embedding = normalize_embedding(avg_embedding, 'l2')
+            
+            speaker_database[speaker_id] = avg_embedding
+        
+        self.speaker_database = speaker_database
+        if save_path:
+            self.save_database(save_path)
+        
+        return speaker_database, all_embeddings_flat
     
     def _process_files_in_batches(self, audio_files, pbar, preprocess_config=None):
         """
@@ -298,7 +361,8 @@ class SpeakerIdentifier:
         try:
             data = {
                 'embeddings': self.speaker_database,
-                'metadata': self.metadata
+                'metadata': self.metadata,
+                'global_mean': self.global_mean
             }
             with open(save_path, 'wb') as f:
                 pickle.dump(data, f)
@@ -314,9 +378,11 @@ class SpeakerIdentifier:
             if isinstance(data, dict) and 'embeddings' in data:
                 self.speaker_database = data['embeddings']
                 self.metadata = data.get('metadata')
+                self.global_mean = data.get('global_mean')
             else:
                 self.speaker_database = data
                 self.metadata = None
+                self.global_mean = None
             
             print(f"Loaded speaker database with {len(self.speaker_database)} speakers")
             if self.metadata:
@@ -328,6 +394,8 @@ class SpeakerIdentifier:
                 if norm_method:
                     self.normalize_method = norm_method
                     print(f"  Normalization: {norm_method}")
+                if self.global_mean is not None:
+                    print(f"  Global mean: stored ({len(self.global_mean)} dims)")
             else:
                 print("  (Legacy format - no metadata)")
             return True
@@ -359,7 +427,10 @@ class SpeakerIdentifier:
         if test_embedding is None:
             return None
         
-        if self.normalize_method in ('l2', 'l2-centered'):
+        if self.normalize_method == 'l2-centered' and self.global_mean is not None:
+            test_embedding = test_embedding - self.global_mean
+            test_embedding = normalize_embedding(test_embedding, 'l2')
+        elif self.normalize_method == 'l2':
             test_embedding = normalize_embedding(test_embedding, 'l2')
         
         similarities = {}
