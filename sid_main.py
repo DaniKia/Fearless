@@ -121,16 +121,21 @@ def format_enrollment_metadata(metadata):
 def generate_report_filename(embedding_path):
     """
     Generate report filename from embedding pkl path.
+    Saves report in the same directory as the pkl file.
     
     Args:
         embedding_path: Path to the embedding pkl file
         
     Returns:
-        Report filename (e.g., 'model_v1_sid_report.txt')
+        Full path to report file (e.g., '/path/to/model_v1_sid_report.txt')
     """
+    dir_path = os.path.dirname(embedding_path)
     base_name = os.path.basename(embedding_path)
     name_without_ext = os.path.splitext(base_name)[0]
-    return f"{name_without_ext}_sid_report.txt"
+    report_filename = f"{name_without_ext}_sid_report.txt"
+    if dir_path:
+        return os.path.join(dir_path, report_filename)
+    return report_filename
 
 
 class ReportWriter:
