@@ -1,0 +1,168 @@
+write the code to make the embeddings usign the following:
+rewrite this:
+
+Baseline (no preprocessing)
+
+Output: baseline.pkl
+
+Settings:
+
+Preprocessing disabled
+
+Full preprocess (current default)
+
+Output: full_preprocess.pkl
+
+Settings:
+
+Preprocessing enabled
+
+Bandpass: highpass = 80 Hz, lowpass = 7500 Hz
+
+RMS normalization: target = -20.0 dB
+
+Trim: threshold = 30.0 dB below peak
+
+BP-TEL: narrow telephone-style bandpass
+
+Output: bp_tel.pkl
+
+Settings:
+
+Preprocessing enabled
+
+Bandpass: highpass = 300 Hz, lowpass = 3400 Hz
+
+RMS normalization: target = -20.0 dB
+
+Trim: threshold = 30.0 dB below peak
+
+BP-6k: slightly narrower high-frequency bandpass
+
+Output: bp_6k.pkl
+
+Settings:
+
+Preprocessing enabled
+
+Bandpass: highpass = 80 Hz, lowpass = 6000 Hz
+
+RMS normalization: target = -20.0 dB
+
+Trim: threshold = 30.0 dB below peak
+
+TRIM-20: more aggressive trimming
+
+Output: trim_20.pkl
+
+Settings:
+
+Preprocessing enabled
+
+Bandpass: highpass = 80 Hz, lowpass = 7500 Hz
+
+RMS normalization: target = -20.0 dB
+
+Trim: threshold = 20.0 dB below peak
+
+RMS-25: lower RMS target level
+
+Output: rms_25.pkl
+
+Settings:
+
+Preprocessing enabled
+
+Bandpass: highpass = 80 Hz, lowpass = 7500 Hz
+
+RMS normalization: target = -25.0 dB
+
+Trim: threshold = 30.0 dB below peak
+
+MONO-ONLY
+
+Output: mono_only.pkl
+
+Settings:
+
+Preprocessing enabled
+
+Mono conversion enabled
+
+All other preprocessing disabled
+
+No resampling
+
+No DC removal
+
+No bandpass
+
+No RMS normalization
+
+No trim
+
+No length check
+
+RESAMPLE-ONLY
+
+Output: resample_only.pkl
+
+Settings:
+
+Preprocessing enabled
+
+Resampling enabled (to the standard working sample rate, e.g. 16000 Hz)
+
+All other preprocessing disabled
+
+No mono conversion (unless required by your pipeline)
+
+No DC removal
+
+No bandpass
+
+No RMS normalization
+
+No trim
+
+No length check
+
+DC-ONLY
+
+Output: dc_only.pkl
+
+Settings:
+
+Preprocessing enabled
+
+DC removal enabled
+
+All other preprocessing disabled
+
+No mono conversion
+
+No resampling
+
+No bandpass
+
+No RMS normalization
+
+No trim
+
+No length check
+
+edit the following to include all the above settings:
+Baseline - no preprocessing
+!python enroll.py --folder SID --dataset Dev --batch-size 32 --output /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/baseline.pkl
+
+Only bandpass filter
+!python enroll.py --folder SID --dataset Dev --batch-size 32 --preprocess --bandpass --output /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/bandpass_only.pkl
+
+Only RMS normalization
+!python enroll.py --folder SID --dataset Dev --batch-size 32 --preprocess --rms-norm --output /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/rms_only.pkl
+
+Only silence trimming
+!python enroll.py --folder SID --dataset Dev --batch-size 32 --preprocess --trim --output /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/trim_only.pkl
+
+Full preprocessing
+!python enroll.py --folder SID --dataset Dev --batch-size 32 --preprocess --bandpass --rms-norm --trim --output /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/full_preprocess.pkl
