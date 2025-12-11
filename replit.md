@@ -48,6 +48,13 @@ The project prioritizes a command-line interface (CLI) for interaction, focusing
 - **SID Pipeline (`sid_main.py`)**: Identifies speakers using pre-enrolled embeddings. **Preprocessing settings are automatically loaded from PKL metadata** - no separate `--preprocess` flag needed. When multiple PKLs are provided via `--embedding`, each runs with its own embedded preprocessing settings.
 - **Audio Preprocessing**: Modular preprocessing pipeline with configurable steps. `PreprocessConfig.from_dict()` converts PKL metadata back to config objects. Override capability is stubbed for future implementation.
 - **Report Generation**: Automatic report generation when using `--embedding` flag. Reports include embedding filename, enrollment metadata (with preprocessing settings), and confirmation of preprocessing source.
+- **Audio Quality Analysis (`utils.py`)**: Computes per-file and aggregate audio quality metrics for datasets. Metrics include:
+  - `duration_sec`: Total length in seconds
+  - `rms_db`: Overall loudness in dBFS
+  - `peak_amp`: Maximum absolute sample value
+  - `clip_ratio`: Fraction of samples near peak (clipping indicator)
+  - Aggregate statistics: mean, median, std, min, max, P5/P25/P75/P95 percentiles
+  - Use `--audio-quality` flag with optional `--report /path/to/report.txt` to save results.
 - **Combined Pipeline**: Integrates both ASR and SID for simultaneous processing and evaluation.
 - **Flexible Folder Selection**: Supports processing various folders (e.g., ASR_track2, SID, SD_track2) from the Fearless Steps Challenge dataset using a `--folder` parameter.
 - **Data Handling**: Manages loading audio, transcripts, and speaker labels from a structured Google Drive dataset, with automatic detection of dataset types and corresponding label formats.
