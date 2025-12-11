@@ -45,6 +45,9 @@ The project prioritizes a command-line interface (CLI) for interaction, focusing
 ### Technical Implementations & Feature Specifications
 - **ASR Pipeline**: Utilizes OpenAI's Whisper for transcription, supporting various models. It includes Word Error Rate (WER) and Character Error Rate (CER) evaluation, side-by-side transcript comparison, and batch processing.
 - **Enrollment (`enroll.py`)**: Standalone script for speaker enrollment. Creates pkl files with speaker embeddings and metadata (preprocessing settings, dataset info, date). Supports configurable preprocessing via CLI flags. Supports multiple `--output` files for batch PKL creation with same settings.
+  - **Embedding Normalization** (`--normalize`): L2 normalization of speaker embeddings for improved similarity comparisons. Options:
+    - `l2`: Standard L2 normalization - normalizes each embedding before averaging, then normalizes the centroid
+    - `l2-centered`: Mean-centered L2 normalization - computes global mean across all embeddings, subtracts it before L2 normalizing (two-pass, no resume supported)
 - **SID Pipeline (`sid_main.py`)**: Identifies speakers using pre-enrolled embeddings. **Preprocessing settings are automatically loaded from PKL metadata** - no separate `--preprocess` flag needed. When multiple PKLs are provided via `--embedding`, each runs with its own embedded preprocessing settings.
 - **Audio Preprocessing**: Modular preprocessing pipeline with configurable steps. `PreprocessConfig.from_dict()` converts PKL metadata back to config objects. Override capability is stubbed for future implementation.
 - **Report Generation**: Automatic report generation when using `--embedding` flag. Reports include embedding filename, enrollment metadata (with preprocessing settings), and confirmation of preprocessing source.
