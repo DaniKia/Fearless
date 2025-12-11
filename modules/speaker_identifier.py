@@ -10,16 +10,44 @@ import pickle
 from tqdm import tqdm
 import config
 
+def normalize_embedding(embedding, method='l2', global_mean=None):
+    """
+    Normalize an embedding vector.
+    
+    Args:
+        embedding: Numpy array containing the embedding vector
+        method: Normalization method - 'l2', 'l2-centered', or None
+        global_mean: Optional global mean for centering (required for l2-centered)
+        
+    Returns:
+        Normalized embedding vector
+    """
+    if method is None or method == 'none':
+        return embedding
+    
+    if method == 'l2-centered':
+        if global_mean is not None:
+            embedding = embedding - global_mean
+    
+    if method in ('l2', 'l2-centered'):
+        norm = np.linalg.norm(embedding)
+        if norm > 0:
+            embedding = embedding / norm
+    
+    return embedding
+
+
 class SpeakerIdentifier:
     """Speaker identification system with enrollment and prediction."""
     
-    def __init__(self, model_name=None, batch_size=16):
+    def __init__(self, model_name=None, batch_size=16, normalize_method=None):
         """
         Initialize the speaker identifier.
         
         Args:
             model_name: Name of the embedding model (default from config)
             batch_size: Number of files to process per GPU batch (default: 16)
+            normalize_method: Embedding normalization method ('l2', 'l2-centered', or None)
         """
         self.model_name = model_name or config.SPEAKER_EMBEDDING_MODEL
         self.model = None
@@ -27,6 +55,8 @@ class SpeakerIdentifier:
         self.metadata = None
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.batch_size = batch_size
+        self.normalize_method = normalize_method
+        self.global_mean = None
         
     def load_model(self):
         """Load the pre-trained embedding model."""
@@ -133,6 +163,8 @@ class SpeakerIdentifier:
         print(f"Using batch size: {self.batch_size}")
         if preprocess_config:
             print(f"Preprocessing enabled: {preprocess_config.enable_mono}, resample={preprocess_config.enable_resample}")
+        if self.normalize_method:
+            print(f"Embedding normalization: {self.normalize_method}")
         print(f"{'='*60}\n")
         
         speaker_count = 0
@@ -148,7 +180,14 @@ class SpeakerIdentifier:
                 embeddings = self._process_files_in_batches(audio_files, pbar, preprocess_config)
 
                 if embeddings:
+                    if self.normalize_method == 'l2':
+                        embeddings = [normalize_embedding(emb, 'l2') for emb in embeddings]
+                    
                     avg_embedding = np.mean(embeddings, axis=0)
+                    
+                    if self.normalize_method in ('l2', 'l2-centered'):
+                        avg_embedding = normalize_embedding(avg_embedding, 'l2')
+                    
                     speaker_database[speaker_id] = avg_embedding
                     self.speaker_database = speaker_database
                     if save_path:
