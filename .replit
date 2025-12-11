@@ -5,7 +5,7 @@ integrations = ["google-drive:1.0.0"]
 
 [nix]
 channel = "stable-25_05"
-packages = ["ffmpeg-full", "libsndfile"]
+packages = ["ffmpeg-full", "libsndfile", "pkg-config"]
 
 [workflows]
 runButton = "Project"

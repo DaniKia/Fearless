@@ -10,3 +10,5 @@ torch
 torchaudio
 speechbrain
 tqdm
+librosa
+scipy

@@ -7,7 +7,6 @@ import os
 import torch
 import numpy as np
 import pickle
-import soundfile as sf
 from tqdm import tqdm
 import config
 
@@ -25,6 +24,7 @@ class SpeakerIdentifier:
         self.model_name = model_name or config.SPEAKER_EMBEDDING_MODEL
         self.model = None
         self.speaker_database = None
+        self.metadata = None
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.batch_size = batch_size
         
@@ -38,7 +38,7 @@ class SpeakerIdentifier:
             if not hasattr(torchaudio, 'list_audio_backends'):
                 torchaudio.list_audio_backends = lambda: ['soundfile']
             
-            from speechbrain.pretrained import EncoderClassifier
+            from speechbrain.inference import EncoderClassifier
             print(f"Loading speaker embedding model: {self.model_name}")
             print(f"Using device: {self.device}")
             
@@ -53,22 +53,21 @@ class SpeakerIdentifier:
             print(f"Error loading model: {e}")
             raise
     
-    def extract_embedding(self, audio_path):
+    def extract_embedding_from_waveform(self, audio, sample_rate=None):
         """
-        Extract speaker embedding from audio file.
+        Extract speaker embedding from audio waveform.
         
         Args:
-            audio_path: Path to audio file
+            audio: Audio waveform as numpy array (must be mono)
+            sample_rate: Sample rate (not used by model, for API consistency)
             
         Returns:
-            Numpy array containing the embedding vector
+            Numpy array containing the embedding vector, or None on error
         """
         if self.model is None:
             self.load_model()
         
         try:
-            audio, sr = sf.read(audio_path)
-            
             if len(audio.shape) > 1:
                 audio = audio.mean(axis=1)
             
@@ -84,10 +83,10 @@ class SpeakerIdentifier:
             return embedding
             
         except Exception as e:
-            print(f"Error extracting embedding from {audio_path}: {e}")
+            print(f"Error extracting embedding: {e}")
             return None
     
-    def enroll_speakers(self, speaker_files_dict, save_path=None):
+    def enroll_speakers(self, speaker_files_dict, save_path=None, preprocess_config=None, metadata=None):
         """
         Enroll speakers by creating averaged embeddings from their audio files.
         Uses GPU batch processing for faster enrollment.
@@ -95,6 +94,8 @@ class SpeakerIdentifier:
         Args:
             speaker_files_dict: Dictionary mapping speaker_id to list of audio paths
             save_path: Path to save the speaker database (optional)
+            preprocess_config: Optional PreprocessConfig for audio preprocessing
+            metadata: Optional metadata dictionary to store with embeddings
             
         Returns:
             Dictionary mapping speaker_id to averaged embedding
@@ -115,6 +116,7 @@ class SpeakerIdentifier:
                 speaker_database = {}
 
         self.speaker_database = speaker_database
+        self.metadata = metadata
 
         total_speakers = len(speaker_files_dict)
         total_files = sum(len(files) for files in speaker_files_dict.values())
@@ -129,6 +131,8 @@ class SpeakerIdentifier:
         if processed_speakers:
             print(f"Resuming: {len(processed_speakers)} speakers already enrolled, {remaining_speakers} remaining")
         print(f"Using batch size: {self.batch_size}")
+        if preprocess_config:
+            print(f"Preprocessing enabled: {preprocess_config.enable_mono}, resample={preprocess_config.enable_resample}")
         print(f"{'='*60}\n")
         
         speaker_count = 0
@@ -141,7 +145,7 @@ class SpeakerIdentifier:
                 if speaker_id in processed_speakers:
                     continue
 
-                embeddings = self._process_files_in_batches(audio_files, pbar)
+                embeddings = self._process_files_in_batches(audio_files, pbar, preprocess_config)
 
                 if embeddings:
                     avg_embedding = np.mean(embeddings, axis=0)
@@ -159,17 +163,21 @@ class SpeakerIdentifier:
         
         return speaker_database
     
-    def _process_files_in_batches(self, audio_files, pbar):
+    def _process_files_in_batches(self, audio_files, pbar, preprocess_config=None):
         """
         Process audio files in batches using GPU batch processing.
         
         Args:
             audio_files: List of audio file paths
             pbar: Progress bar to update
+            preprocess_config: Optional PreprocessConfig for audio preprocessing
             
         Returns:
             List of embeddings
         """
+        from modules.audio_io import load_audio_safe
+        from modules.audio_preprocessor import preprocess_audio
+        
         if self.model is None:
             self.load_model()
         
@@ -182,18 +190,25 @@ class SpeakerIdentifier:
             valid_indices = []
             
             for idx, audio_path in enumerate(batch_files):
-                try:
-                    audio, sr = sf.read(audio_path)
-                    
+                audio, sr, error = load_audio_safe(audio_path)
+                
+                if error:
+                    print(f"\nWarning: Error loading {audio_path}: {error}")
+                    continue
+                
+                if preprocess_config is not None:
+                    result = preprocess_audio(audio, sr, preprocess_config)
+                    if not result.is_valid:
+                        print(f"\nWarning: Invalid audio after preprocessing {audio_path}")
+                        continue
+                    audio = result.waveform
+                else:
                     if len(audio.shape) > 1:
                         audio = audio.mean(axis=1)
-                    
-                    batch_audio.append(torch.FloatTensor(audio))
-                    batch_lengths.append(len(audio))
-                    valid_indices.append(idx)
-                    
-                except Exception as e:
-                    print(f"\nWarning: Error loading {audio_path}: {e}")
+                
+                batch_audio.append(torch.FloatTensor(audio))
+                batch_lengths.append(len(audio))
+                valid_indices.append(idx)
             
             if not batch_audio:
                 pbar.update(len(batch_files))
@@ -236,35 +251,54 @@ class SpeakerIdentifier:
         return all_embeddings
     
     def save_database(self, save_path):
-        """Save speaker database to file."""
+        """Save speaker database to file with metadata."""
         if self.speaker_database is None:
             print("No speaker database to save")
             return
         
         try:
+            data = {
+                'embeddings': self.speaker_database,
+                'metadata': self.metadata
+            }
             with open(save_path, 'wb') as f:
-                pickle.dump(self.speaker_database, f)
-            print(f"Speaker database saved to: {save_path}")
+                pickle.dump(data, f)
         except Exception as e:
             print(f"Error saving database: {e}")
     
     def load_database(self, database_path):
-        """Load speaker database from file."""
+        """Load speaker database from file (supports both old and new formats)."""
         try:
             with open(database_path, 'rb') as f:
-                self.speaker_database = pickle.load(f)
+                data = pickle.load(f)
+            
+            if isinstance(data, dict) and 'embeddings' in data:
+                self.speaker_database = data['embeddings']
+                self.metadata = data.get('metadata')
+            else:
+                self.speaker_database = data
+                self.metadata = None
+            
             print(f"Loaded speaker database with {len(self.speaker_database)} speakers")
+            if self.metadata:
+                print(f"  Enrollment: {self.metadata.get('folder', 'N/A')}/{self.metadata.get('dataset', 'N/A')}")
+                print(f"  Date: {self.metadata.get('date', 'N/A')}")
+                preproc = self.metadata.get('preprocessing', {})
+                print(f"  Preprocessing: {'Enabled' if preproc.get('enabled') else 'Disabled'}")
+            else:
+                print("  (Legacy format - no metadata)")
             return True
         except Exception as e:
             print(f"Error loading database: {e}")
             return False
     
-    def identify_speaker(self, audio_path, top_k=1):
+    def identify_speaker_from_waveform(self, audio, sample_rate, top_k=1):
         """
-        Identify speaker from audio file using cosine similarity.
+        Identify speaker from audio waveform using cosine similarity.
         
         Args:
-            audio_path: Path to audio file
+            audio: Audio waveform as numpy array (mono)
+            sample_rate: Sample rate of audio
             top_k: Number of top candidates to return
             
         Returns:
@@ -278,7 +312,7 @@ class SpeakerIdentifier:
         if self.model is None:
             self.load_model()
         
-        test_embedding = self.extract_embedding(audio_path)
+        test_embedding = self.extract_embedding_from_waveform(audio, sample_rate)
         if test_embedding is None:
             return None
         
@@ -293,6 +327,40 @@ class SpeakerIdentifier:
             return sorted_speakers[0]
         else:
             return sorted_speakers[:top_k]
+    
+    def identify_speaker(self, audio_path, top_k=1, preprocess_config=None):
+        """
+        Identify speaker from audio file using cosine similarity.
+        
+        Args:
+            audio_path: Path to audio file
+            top_k: Number of top candidates to return
+            preprocess_config: Optional PreprocessConfig for audio preprocessing
+            
+        Returns:
+            If top_k=1: (speaker_id, similarity_score)
+            If top_k>1: List of (speaker_id, similarity_score) tuples
+        """
+        from modules.audio_io import load_audio_safe
+        from modules.audio_preprocessor import preprocess_audio
+        
+        audio, sr, error = load_audio_safe(audio_path)
+        if error:
+            print(f"Error loading {audio_path}: {error}")
+            return None
+        
+        if preprocess_config is not None:
+            result = preprocess_audio(audio, sr, preprocess_config)
+            if not result.is_valid:
+                print(f"Error: Invalid audio after preprocessing {audio_path}")
+                return None
+            audio = result.waveform
+            sr = result.sample_rate
+        else:
+            if len(audio.shape) > 1:
+                audio = audio.mean(axis=1)
+        
+        return self.identify_speaker_from_waveform(audio, sr, top_k)
     
     def _cosine_similarity(self, vec1, vec2):
         """Calculate cosine similarity between two vectors."""
