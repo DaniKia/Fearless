@@ -1,0 +1,182 @@
+Right now you pass file paths into your pipeline. So you want the coder to build a single entry function that:
+
+Input: audio_path (string, file path on disk or in Drive)
+
+Output: a normalized, trimmed mono waveform at a fixed sample rate, ready for any speech task (ASR, SID, etc.)
+
+You can describe it like this:
+
+Create a reusable audio preprocessing function that:
+
+Takes an audio file path as input.
+
+Loads the audio from disk using a robust audio library (e.g. torchaudio or ffmpeg under the hood).
+
+Returns a mono waveform tensor/array at a fixed sample rate (e.g. 16 kHz), with:
+
+DC offset removed,
+
+Optional light band-pass filtering,
+
+Loudness normalized to a target RMS range,
+
+Leading and trailing silence lightly trimmed.
+
+This function will be used for all downstream tasks (ASR, SID, etc.), so it must be task-agnostic.
+
+Then break down the steps you want implemented:
+
+Step 1: File decoding
+
+Tell the coder:
+
+Use an off-the-shelf audio library that can:
+
+Read WAV and potentially other formats.
+
+Return audio as a numeric array or tensor (float32).
+
+The function should:
+
+Accept a file path.
+
+Load the audio into memory as a waveform and a sample rate.
+
+Step 2: Mono conversion
+
+Describe it:
+
+If the loaded audio has multiple channels (stereo), convert to mono by averaging channels.
+
+Always return a single-channel signal.
+
+Step 3: Resampling to a fixed sample rate
+
+Describe it:
+
+Resample everything to a single target sample rate (e.g. 16 kHz).
+
+Use a good-quality resampling function from the audio library (the coder will know which one).
+
+After this step, every waveform in the pipeline is at the same sample rate.
+
+Step 4: DC offset removal
+
+Describe it:
+
+Compute the mean value of the waveform.
+
+Subtract that mean from the entire signal so the average value is zero.
+
+This should be done after resampling.
+
+Step 5: Optional light band-pass filtering
+
+This one is optional but useful; describe it like this:
+
+Add an optional band-limiting filter:
+
+High-pass around ~80 Hz to remove very low frequency hum.
+
+Low-pass around ~8 kHz (or similar, depending on sample rate) to remove very high-frequency noise.
+
+Make this step controlled by a configuration flag (see Section 2).
+
+Step 6: Loudness / RMS normalization
+
+Describe the behavior you want:
+
+Compute the RMS (root mean square) energy of the signal.
+
+Define:
+
+A target RMS (e.g. 0.04).
+
+Acceptable RMS bounds (e.g. minimum 0.005, maximum 0.2).
+
+If the signal’s RMS is outside those bounds:
+
+Scale the waveform so its RMS matches the target RMS.
+
+If the RMS is within the range, leave it as is.
+
+This ensures most signals have similar loudness while avoiding over-amplifying silence.
+
+Step 7: Gentle start/end trimming
+
+This is not full VAD, just conservative trimming:
+
+Use an off-the-shelf function that can:
+
+Detect and trim leading and trailing low-energy regions based on a dB threshold (e.g. 20–30 dB below peak).
+
+Keep this trimming light:
+
+Only trim the very beginning and end.
+
+Do not attempt aggressive interior speech/non-speech segmentation here (that’s SID-specific).
+
+Step 8: Duration / sanity checks
+
+Describe a simple sanity step:
+
+After preprocessing, compute duration = number_of_samples / sample_rate.
+
+If duration is extremely short (e.g. < 0.2 s), mark the sample as “invalid” or return an explicit flag, so the caller can decide what to do (skip, log, etc.).
+
+Packaging as a single “frontend” function
+
+To the coder, frame it like this:
+
+Implement a function, e.g. basic_preprocess_file(path, config), that:
+
+Executes steps 1–8 in order.
+
+Uses config (a small configuration object or dict) to control which steps are enabled and with what parameters.
+
+Returns:
+
+A mono waveform at the target sample rate.
+
+The effective sample rate.
+
+Optionally, metadata such as the applied gain factor or a flag if the sample was too short.
+
+2. Make each component switchable for experiments
+
+You want to turn each component on and off to study its effect on SID performance. That means the coder must implement the frontend as a modular pipeline with explicit configuration.
+
+Describe this to the coder as:
+
+Create a configuration structure (e.g. PreprocessConfig) with flags and parameters for each step:
+
+enable_mono
+
+enable_resample
+
+enable_dc_removal
+
+enable_bandpass
+
+enable_rms_normalization
+
+enable_trim
+and parameters like:
+
+target_sr
+
+target_rms, rms_min, rms_max
+
+trim_db
+
+highpass_cutoff, lowpass_cutoff
+
+The preprocessing function must:
+
+Check each flag before running the corresponding step.
+
+Run only the steps that are enabled.
+
+Optionally log which steps were applied.
+
+In other words: the same function, but behavior controlled by a config object. That’s the key to your ablation study.

@@ -1,0 +1,36 @@
+
+============================================================
+Speaker Enrollment - SID/Train Dataset
+============================================================
+
+Folder: SID
+Audio directory: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/SID/Train
+Label directory: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Transcripts/SID
+Database will be saved to: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/speaker_database.pkl
+Preprocessing: Disabled
+
+Loaded 27336 SID labels from Train dataset
+Found 218 unique speakers
+Total audio files: 27336
+
+/usr/local/lib/python3.12/dist-packages/torch/backends/__init__.py:46: UserWarning: Please use the new API settings to control TF32 behavior, such as torch.backends.cudnn.conv.fp32_precision = 'tf32' or torch.backends.cuda.matmul.fp32_precision = 'ieee'. Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  self.setter(val)
+/content/Fearless/Fearless/modules/speaker_identifier.py:40: UserWarning: Module 'speechbrain.pretrained' was deprecated, redirecting to 'speechbrain.inference'. Please update your script. This is a change from SpeechBrain 1.0. See: https://github.com/speechbrain/speechbrain/releases/tag/v1.0.0
+  from speechbrain.pretrained import EncoderClassifier
+Loading speaker embedding model: speechbrain/spkrec-ecapa-voxceleb
+Using device: cuda
+hyperparams.yaml: 1.92kB [00:00, 9.58MB/s]
+/usr/local/lib/python3.12/dist-packages/speechbrain/utils/autocast.py:188: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  wrapped_fwd = torch.cuda.amp.custom_fwd(fwd, cast_inputs=cast_inputs)
+embedding_model.ckpt: 100% 83.3M/83.3M [00:00<00:00, 110MB/s]
+mean_var_norm_emb.ckpt: 100% 1.92k/1.92k [00:00<00:00, 15.3MB/s]
+classifier.ckpt: 100% 5.53M/5.53M [00:00<00:00, 23.7MB/s]
+label_encoder.txt: 129kB [00:00, 77.4MB/s]
+Model loaded successfully!
+
+============================================================
+Enrolling 218 speakers from 27336 audio files
+Using batch size: 32
+============================================================
+
+[1/218] FD1 (2862 files):   2% 544/27336 [04:57<3:52:25,  1.92file/s]

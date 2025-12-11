@@ -2,6 +2,7 @@
 Whisper ASR transcriber module.
 """
 
+import numpy as np
 import torch
 import whisper
 
@@ -30,12 +31,13 @@ def load_whisper_model(model_name="tiny.en"):
 
     return _model_cache[cache_key]
 
-def transcribe_audio(audio_path, model_name="tiny.en", include_timestamps=True):
+def transcribe_waveform(audio, sample_rate, model_name="tiny.en", include_timestamps=True):
     """
-    Transcribe audio file using Whisper.
+    Transcribe audio waveform using Whisper.
     
     Args:
-        audio_path: Path to audio file
+        audio: Audio waveform as numpy array (mono, float32)
+        sample_rate: Sample rate of the audio
         model_name: Whisper model to use
         include_timestamps: Whether to include word-level timestamps
         
@@ -47,8 +49,59 @@ def transcribe_audio(audio_path, model_name="tiny.en", include_timestamps=True):
     """
     model = load_whisper_model(model_name)
     
-    print(f"Transcribing: {audio_path}")
+    use_fp16 = model.device.type != "cpu"
+    
+    audio_float32 = audio.astype(np.float32) if audio.dtype != np.float32 else audio
 
+    result = model.transcribe(
+        audio_float32,
+        language="en",
+        word_timestamps=include_timestamps,
+        verbose=False,
+        fp16=use_fp16
+    )
+    
+    return {
+        'text': result['text'].strip(),
+        'segments': result.get('segments', []),
+        'language': result.get('language', 'en')
+    }
+
+def transcribe_audio(audio_path, model_name="tiny.en", include_timestamps=True, preprocess_config=None):
+    """
+    Transcribe audio file using Whisper.
+    
+    Args:
+        audio_path: Path to audio file
+        model_name: Whisper model to use
+        include_timestamps: Whether to include word-level timestamps
+        preprocess_config: Optional PreprocessConfig for audio preprocessing
+        
+    Returns:
+        Dictionary with transcription results:
+        - text: Transcribed text
+        - segments: List of segments with timestamps
+        - language: Detected language
+    """
+    from modules.audio_io import load_audio_safe
+    from modules.audio_preprocessor import preprocess_audio
+    
+    print(f"Transcribing: {audio_path}")
+    
+    if preprocess_config is not None:
+        audio, sr, error = load_audio_safe(audio_path)
+        if error:
+            print(f"Error loading {audio_path}: {error}")
+            return {'text': '', 'segments': [], 'language': 'en'}
+        
+        result = preprocess_audio(audio, sr, preprocess_config)
+        if not result.is_valid:
+            print(f"Error: Invalid audio after preprocessing {audio_path}")
+            return {'text': '', 'segments': [], 'language': 'en'}
+        
+        return transcribe_waveform(result.waveform, result.sample_rate, model_name, include_timestamps)
+    
+    model = load_whisper_model(model_name)
     use_fp16 = model.device.type != "cpu"
 
     result = model.transcribe(
