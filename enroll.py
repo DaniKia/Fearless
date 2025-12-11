@@ -149,8 +149,8 @@ Examples:
   # Enrollment with preprocessing and L2 normalization (recommended)
   python enroll.py --preprocess --resample --normalize l2 --output enrolled.pkl
 
-  # Custom preprocessing with L2-centered normalization
-  python enroll.py --preprocess --bandpass --highpass 100 --lowpass 7000 --normalize l2-centered --output custom.pkl
+  # Custom preprocessing settings
+  python enroll.py --preprocess --bandpass --highpass 100 --lowpass 7000 --normalize l2 --output custom.pkl
 
   # Multiple output files
   python enroll.py --preprocess --normalize l2 --output config_a.pkl config_b.pkl
@@ -197,7 +197,7 @@ Examples:
     
     embedding_group = parser.add_argument_group('Embedding Options')
     embedding_group.add_argument('--normalize', type=str, default=None,
-                                  choices=['l2', 'l2-centered'],
+                                  choices=['l2'],
                                   help='Embedding normalization method (l2 recommended)')
     
     args = parser.parse_args()
