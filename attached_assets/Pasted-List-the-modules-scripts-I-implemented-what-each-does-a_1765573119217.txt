@@ -1,0 +1,83 @@
+List the modules/scripts I implemented, what each does, and why it exists. Include:
+
+main ASR entrypoint(s)
+
+SID entrypoint(s)
+
+enrollment script
+
+preprocessing pipeline + configuration design
+
+evaluation/report generation
+
+utilities (audio quality metrics, etc.)
+For each bullet: component name → purpose → key behavior.
+
+C) What I used off-the-shelf (bullet list)
+
+List external models and libraries, grouped by role:
+
+ASR model(s) used (name, where loaded from, how invoked)
+
+Speaker embedding model(s) used (SpeechBrain model name/checkpoint if present)
+
+Core frameworks (torch/torchaudio, etc.)
+
+Audio tooling (librosa/scipy/soundfile)
+
+Metrics (jiwer WER/CER, SID accuracy/confusion matrix if implemented)
+Include versions if specified (requirements file or install strings). If not visible, say “version not pinned.”
+
+D) Technical design choices worth mentioning (bullet list)
+
+Explain the non-obvious engineering decisions that improve reproducibility and experimentation, such as:
+
+separation of Audio I/O vs Audio Preprocessing
+
+dataclass config for preprocessing flags
+
+PKL artifacts storing metadata (preprocessing settings, dataset info, timestamp)
+
+automatic loading of preprocessing settings from PKL at inference time
+
+CLI-first interface and Colab compatibility
+
+E) Experiments & results summary (table + bullets)
+
+Look for evaluation outputs or report files and summarize:
+
+Baseline vs preprocessing variants
+
+Any normalization experiments (L2 normalization, z-norm)
+
+Any resampling/upsampling impact
+Provide a table with: run name, enrollment split, test split, top-1/top-3/top-5 (or other metrics), and notes.
+If results are not in repo, output “results not present in repository” and list which scripts would generate them.
+
+F) Reproducibility instructions (5–10 lines)
+
+Give exact commands to reproduce:
+
+enrollment creation
+
+adding z-norm (if present)
+
+running SID evaluation across multiple PKLs
+
+running ASR evaluation
+Use the real CLI flags from --help or code.
+
+G) 5 “defense-ready” talking points (numbered)
+
+These should be technically credible points I can say in a presentation, e.g.:
+
+what the pipeline proves (ablation-ready, avoids confounds)
+
+what improved performance most and why (if results exist)
+
+what pitfalls were found (e.g., score normalization instability) and how mitigated (sigma floor / cohort)
+
+what’s next (quality-based enrollment selection, calibration, PLDA, faster-whisper optional)
+
+Tone
+Professional, factual, and optimized for a 15-minute project presentation. Use clear headings and bullets. Avoid marketing language.
