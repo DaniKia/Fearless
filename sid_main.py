@@ -401,7 +401,7 @@ Note: Preprocessing settings are automatically loaded from each PKL file.
         type=str,
         default=None,
         choices=['znorm'],
-        help='Score normalization method. znorm: z-normalize scores using per-speaker impostor statistics. Requires z-norm stats in PKL (computed during enrollment).'
+        help='Score normalization method. znorm: z-normalize scores using per-speaker impostor statistics. Requires z-norm stats in PKL (add them via add_znorm.py). Speakers with unreliable stats (low sigma) use raw scores.'
     )
     
     args = parser.parse_args()

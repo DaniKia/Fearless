@@ -32,7 +32,7 @@ def normalize_embedding(embedding, method='l2'):
     return embedding
 
 
-def compute_znorm_stats(speaker_database):
+def compute_znorm_stats(speaker_database, sigma_floor=0.03, verbose=True):
     """
     Compute z-norm statistics for each speaker using other speakers as impostors.
     
@@ -41,9 +41,16 @@ def compute_znorm_stats(speaker_database):
     
     Args:
         speaker_database: Dictionary mapping speaker_id to embedding centroid
+        sigma_floor: Minimum reliable sigma value (default 0.03 for cosine scores).
+                     Speakers with sigma below this threshold are marked unreliable
+                     and will use raw scores at inference time.
+        verbose: Print diagnostic information about sigma distribution
         
     Returns:
-        Dictionary mapping speaker_id to {'mu': float, 'sigma': float}
+        Dictionary mapping speaker_id to:
+          {'mu': float, 'sigma': float, 'reliable': bool}
+        
+        If reliable=False, z-norm should NOT be applied for this speaker.
     """
     speaker_ids = list(speaker_database.keys())
     n_speakers = len(speaker_ids)
@@ -53,29 +60,56 @@ def compute_znorm_stats(speaker_database):
         return {}
     
     znorm_stats = {}
+    all_sigmas = []
     
     for target_id in speaker_ids:
         target_embedding = speaker_database[target_id]
+        target_norm = np.linalg.norm(target_embedding)
+        
+        if target_norm < 1e-8:
+            znorm_stats[target_id] = {'mu': 0.0, 'sigma': 0.0, 'reliable': False}
+            continue
+        
         impostor_scores = []
         
         for impostor_id in speaker_ids:
             if impostor_id == target_id:
                 continue
             impostor_embedding = speaker_database[impostor_id]
+            impostor_norm = np.linalg.norm(impostor_embedding)
+            
+            if impostor_norm < 1e-8:
+                continue
             
             dot_product = np.dot(target_embedding, impostor_embedding)
-            norm1 = np.linalg.norm(target_embedding)
-            norm2 = np.linalg.norm(impostor_embedding)
-            similarity = dot_product / (norm1 * norm2)
+            similarity = dot_product / (target_norm * impostor_norm)
             impostor_scores.append(similarity)
+        
+        if len(impostor_scores) < 2:
+            znorm_stats[target_id] = {'mu': 0.0, 'sigma': 0.0, 'reliable': False}
+            continue
         
         mu = np.mean(impostor_scores)
         sigma = np.std(impostor_scores)
+        all_sigmas.append((target_id, sigma))
         
-        if sigma < 1e-6:
-            sigma = 1e-6
+        reliable = sigma >= sigma_floor
+        znorm_stats[target_id] = {'mu': mu, 'sigma': sigma, 'reliable': reliable}
+    
+    if verbose and all_sigmas:
+        all_sigmas.sort(key=lambda x: x[1])
+        unreliable_count = sum(1 for _, s in all_sigmas if s < sigma_floor)
         
-        znorm_stats[target_id] = {'mu': mu, 'sigma': sigma}
+        print(f"\nZ-norm sigma statistics:")
+        print(f"  Total speakers: {len(all_sigmas)}")
+        print(f"  Sigma floor: {sigma_floor}")
+        print(f"  Unreliable speakers (sigma < floor): {unreliable_count}")
+        
+        if unreliable_count > 0:
+            print(f"\n  Speakers with smallest sigma (will use raw scores):")
+            for spk_id, sigma in all_sigmas[:min(10, unreliable_count + 5)]:
+                status = "UNRELIABLE" if sigma < sigma_floor else "ok"
+                print(f"    {spk_id:20s}: sigma={sigma:.6f} [{status}]")
     
     return znorm_stats
 
@@ -429,7 +463,7 @@ class SpeakerIdentifier:
             scores = {}
             for speaker_id, raw_score in raw_similarities.items():
                 stats = self.znorm_stats.get(speaker_id)
-                if stats:
+                if stats and stats.get('reliable', True) and stats.get('sigma', 0) > 0:
                     z_score = (raw_score - stats['mu']) / stats['sigma']
                     scores[speaker_id] = z_score
                 else:
