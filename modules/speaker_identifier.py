@@ -32,23 +32,29 @@ def normalize_embedding(embedding, method='l2'):
     return embedding
 
 
-def compute_znorm_stats(speaker_database, sigma_floor=0.03, verbose=True):
+def compute_znorm_stats(speaker_database, sigma_floor=0.03, cohort_size=None, verbose=True):
     """
-    Compute z-norm statistics for each speaker using other speakers as impostors.
+    Compute z-norm statistics for each speaker using top-N cohort impostors.
     
     For each speaker, computes the mean and std of cosine similarities
-    with all other speaker centroids (impostors).
+    with the top-N most similar speaker centroids (hard negatives).
+    Using only hard negatives (cohort) is the standard practice that:
+    - Produces larger, more stable sigma values
+    - Focuses statistics on confusing/similar speakers
+    - Avoids tiny sigma from including easy rejects
     
     Args:
         speaker_database: Dictionary mapping speaker_id to embedding centroid
         sigma_floor: Minimum reliable sigma value (default 0.03 for cosine scores).
                      Speakers with sigma below this threshold are marked unreliable
                      and will use raw scores at inference time.
+        cohort_size: Number of top impostors to use (default: None = all impostors).
+                     Recommended: 50-100 for typical speaker sets.
         verbose: Print diagnostic information about sigma distribution
         
     Returns:
         Dictionary mapping speaker_id to:
-          {'mu': float, 'sigma': float, 'reliable': bool}
+          {'mu': float, 'sigma': float, 'reliable': bool, 'cohort_size': int}
         
         If reliable=False, z-norm should NOT be applied for this speaker.
     """
@@ -59,6 +65,15 @@ def compute_znorm_stats(speaker_database, sigma_floor=0.03, verbose=True):
         print("Warning: Need at least 2 speakers to compute z-norm stats")
         return {}
     
+    max_impostors = n_speakers - 1
+    effective_cohort = cohort_size if cohort_size and cohort_size < max_impostors else max_impostors
+    
+    if verbose:
+        if cohort_size:
+            print(f"  Using top-{effective_cohort} cohort scoring (out of {max_impostors} impostors)")
+        else:
+            print(f"  Using all {max_impostors} impostors (no cohort limit)")
+    
     znorm_stats = {}
     all_sigmas = []
     
@@ -67,7 +82,7 @@ def compute_znorm_stats(speaker_database, sigma_floor=0.03, verbose=True):
         target_norm = np.linalg.norm(target_embedding)
         
         if target_norm < 1e-8:
-            znorm_stats[target_id] = {'mu': 0.0, 'sigma': 0.0, 'reliable': False}
+            znorm_stats[target_id] = {'mu': 0.0, 'sigma': 0.0, 'reliable': False, 'cohort_size': 0}
             continue
         
         impostor_scores = []
@@ -86,23 +101,35 @@ def compute_znorm_stats(speaker_database, sigma_floor=0.03, verbose=True):
             impostor_scores.append(similarity)
         
         if len(impostor_scores) < 2:
-            znorm_stats[target_id] = {'mu': 0.0, 'sigma': 0.0, 'reliable': False}
+            znorm_stats[target_id] = {'mu': 0.0, 'sigma': 0.0, 'reliable': False, 'cohort_size': 0}
             continue
         
-        mu = np.mean(impostor_scores)
-        sigma = np.std(impostor_scores)
+        impostor_scores.sort(reverse=True)
+        cohort_scores = impostor_scores[:effective_cohort]
+        
+        mu = np.mean(cohort_scores)
+        sigma = np.std(cohort_scores)
         all_sigmas.append((target_id, sigma))
         
         reliable = sigma >= sigma_floor
-        znorm_stats[target_id] = {'mu': mu, 'sigma': sigma, 'reliable': reliable}
+        znorm_stats[target_id] = {
+            'mu': mu, 
+            'sigma': sigma, 
+            'reliable': reliable,
+            'cohort_size': len(cohort_scores)
+        }
     
     if verbose and all_sigmas:
         all_sigmas.sort(key=lambda x: x[1])
         unreliable_count = sum(1 for _, s in all_sigmas if s < sigma_floor)
         
+        sigmas_only = [s for _, s in all_sigmas]
         print(f"\nZ-norm sigma statistics:")
         print(f"  Total speakers: {len(all_sigmas)}")
+        print(f"  Cohort size: {effective_cohort}")
         print(f"  Sigma floor: {sigma_floor}")
+        print(f"  Sigma range: {min(sigmas_only):.4f} - {max(sigmas_only):.4f}")
+        print(f"  Sigma mean: {np.mean(sigmas_only):.4f}")
         print(f"  Unreliable speakers (sigma < floor): {unreliable_count}")
         
         if unreliable_count > 0:

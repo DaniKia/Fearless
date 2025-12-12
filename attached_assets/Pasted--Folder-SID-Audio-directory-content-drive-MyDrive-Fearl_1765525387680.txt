@@ -1,0 +1,934 @@
+
+Folder: SID
+Audio directory: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/SID/Dev
+Label directory: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Transcripts/SID
+
+############################################################
+# Processing embedding 1/2: znorm_only.pkl
+############################################################
+Loaded speaker database with 218 speakers
+  Enrollment: SID/Train
+  Date: 2025-12-11 07:57:31
+  Preprocessing: Disabled
+  Z-norm stats: Available (218 speakers)
+Loaded 6373 SID labels from Dev dataset
+============================================================
+Speaker Identification Report
+============================================================
+Embedding File: znorm_only.pkl
+Test Dataset: SID/Dev
+Run Date: 2025-12-12 07:37:19
+
+Enrollment Info:
+  Source Dataset:      SID/Train
+  Enrollment Date:     2025-12-11 07:57:31
+  Speakers Enrolled:   218
+  Files Processed:     27336
+  Enrollment Preproc:  Disabled (raw audio)
+
+Identification Preprocessing: Disabled (raw audio)
+Score Normalization: znorm
+============================================================
+
+Processing 6373 files...
+Identifying speakers:   0% 0/6373 [00:00<?, ?file/s]/usr/local/lib/python3.12/dist-packages/torch/backends/__init__.py:46: UserWarning: Please use the new API settings to control TF32 behavior, such as torch.backends.cudnn.conv.fp32_precision = 'tf32' or torch.backends.cuda.matmul.fp32_precision = 'ieee'. Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  self.setter(val)
+Loading speaker embedding model: speechbrain/spkrec-ecapa-voxceleb
+Using device: cuda
+/usr/local/lib/python3.12/dist-packages/speechbrain/utils/autocast.py:188: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  wrapped_fwd = torch.cuda.amp.custom_fwd(fwd, cast_inputs=cast_inputs)
+Model loaded successfully!
+Identifying speakers: 100% 6373/6373 [02:36<00:00, 40.72file/s]
+
+================================================================================
+BATCH PROCESSING SUMMARY
+================================================================================
+Total Files Processed: 6373
+Correct Predictions  : 117
+Incorrect Predictions: 6256
+================================================================================
+
+Accuracy Metrics:
+--------------------------------------------------------------------------------
+Top-1 Accuracy       : 1.84%
+Top-3 Accuracy       : 6.23%
+Top-5 Accuracy       : 10.64%
+================================================================================
+
+Per-Speaker Recall (accuracy per reference speaker):
+--------------------------------------------------------------------------------
+AFD1                :   0/ 11 (  0.0%)
+AFD3                :   3/  4 ( 75.0%)
+AFD5                :   0/ 26 (  0.0%)
+AGC                 :   0/  5 (  0.0%)
+AGCSUPPORT          :   1/  1 (100.0%)
+ALDS                :   0/  3 (  0.0%)
+ALSEP               :   0/  7 (  0.0%)
+ANTIGUA             :   0/  2 (  0.0%)
+ARIA                :   0/  5 (  0.0%)
+ASCENSION           :   0/ 40 (  0.0%)
+ASCENSIONCOMMTECH   :   1/  7 ( 14.3%)
+BERMUDA             :   0/  4 (  0.0%)
+BERMUDACOMMTECH     :   0/  1 (  0.0%)
+BOB                 :   0/  2 (  0.0%)
+BOOSTER1            :   0/ 33 (  0.0%)
+BUZZ                :   4/497 (  0.8%)
+CALIFORNIA          :   1/  1 (100.0%)
+CANARY              :   0/ 10 (  0.0%)
+CANARYCOMMTECH      :   1/  2 ( 50.0%)
+CAPCOM1             :   4/461 (  0.9%)
+CAPCOM2             :   0/260 (  0.0%)
+CAPCOM3             :   0/ 46 (  0.0%)
+CAPCOM4             :  19/ 28 ( 67.9%)
+CARNARVON           :   0/  9 (  0.0%)
+CCATSCOMMAND        :   0/  8 (  0.0%)
+CCATSTELEMETRY      :   0/ 25 (  0.0%)
+CLTC                :   2/  4 ( 50.0%)
+COLLINS             :   3/132 (  2.3%)
+COMM                :   0/  6 (  0.0%)
+COMMANAGER1         :   0/ 14 (  0.0%)
+COMMCONTROL1        :   0/  6 (  0.0%)
+COMMCONTROL2        :   0/  8 (  0.0%)
+COMMCONTROL3        :   0/ 28 (  0.0%)
+COMMCONTROL4        :   0/  2 (  0.0%)
+COMPUTERMNO         :   0/  2 (  0.0%)
+CONSUMABLES         :   0/  3 (  0.0%)
+CONTROL1            :   0/ 58 (  0.0%)
+CONTROL2            :   0/ 18 (  0.0%)
+CPSPK               :   0/  4 (  0.0%)
+CPSS                :   0/  2 (  0.0%)
+CSANINE             :   1/  2 ( 50.0%)
+CSAT                :   0/  1 (  0.0%)
+CTSC                :   0/  3 (  0.0%)
+CVTS                :   1/ 19 (  5.3%)
+DEPUTYLOM           :   0/  4 (  0.0%)
+DISPLAY             :   0/  6 (  0.0%)
+DOCUMENTATION       :   0/  2 (  0.0%)
+DONHUGHES           :   0/  3 (  0.0%)
+DYNAMICS            :   0/  2 (  0.0%)
+ECS1                :   7/ 43 ( 16.3%)
+ECS2                :   0/ 11 (  0.0%)
+ECS3                :   0/  6 (  0.0%)
+ECS4                :   0/ 12 (  0.0%)
+EECOM1              :   1/135 (  0.7%)
+EECOM2              :   0/ 51 (  0.0%)
+EECOM3              :   0/ 76 (  0.0%)
+EECOM5              :   2/ 45 (  4.4%)
+EMU                 :   0/ 37 (  0.0%)
+EPE                 :   2/  3 ( 66.7%)
+EPS1                :   0/  8 (  0.0%)
+EPS2                :   0/ 35 (  0.0%)
+EPS3                :   0/ 17 (  0.0%)
+ERNIE               :   2/  2 (100.0%)
+EVA                 :   0/ 17 (  0.0%)
+EXPERIMENTS         :   0/ 17 (  0.0%)
+FAO1                :   0/ 46 (  0.0%)
+FAO2                :   0/ 13 (  0.0%)
+FAO3                :   0/ 11 (  0.0%)
+FD1                 :   0/661 (  0.0%)
+FD2                 :   0/ 32 (  0.0%)
+FD3                 :   0/164 (  0.0%)
+FEMALE2             :   0/  2 (  0.0%)
+FEMALE3             :   2/  2 (100.0%)
+FIDO1               :   0/150 (  0.0%)
+FIDO2               :   0/  3 (  0.0%)
+FIDO3               :   0/ 58 (  0.0%)
+FLIGHTPLAN1         :   0/  3 (  0.0%)
+FLIGHTPLAN2         :   0/  1 (  0.0%)
+FLIGHTPLANSUPPORT   :   1/  5 ( 20.0%)
+FORTYEIGHT          :   0/  2 (  0.0%)
+FRANK               :   1/  3 ( 33.3%)
+GBM                 :   0/  1 (  0.0%)
+GCC                 :   0/  3 (  0.0%)
+GEORGE              :   0/  5 (  0.0%)
+GMIL                :   0/  2 (  0.0%)
+GNC1                :   0/106 (  0.0%)
+GNC2                :   0/ 46 (  0.0%)
+GNC3                :   0/ 32 (  0.0%)
+GNC4                :   0/ 57 (  0.0%)
+GNN1                :   6/ 32 ( 18.8%)
+GNN2                :   0/ 34 (  0.0%)
+GNN3                :   2/  3 ( 66.7%)
+GNN4                :   1/  6 ( 16.7%)
+GODDARDOPS          :   1/  3 ( 33.3%)
+GODDARDVOICE        :   0/  7 (  0.0%)
+GOLDSTONE           :   0/ 53 (  0.0%)
+GOLDSTONECOMMTECH   :   0/  5 (  0.0%)
+GOLDSTONEVIDEO      :   0/  6 (  0.0%)
+GUAM                :   0/  2 (  0.0%)
+GUAYMAS             :   0/  2 (  0.0%)
+GUIDANCE1           :   5/115 (  4.3%)
+GUIDANCE2           :   0/  8 (  0.0%)
+GUIDANCE3           :   0/ 60 (  0.0%)
+GUIDANCE4           :   0/133 (  0.0%)
+HARRY               :   0/  1 (  0.0%)
+HAWAII              :   0/  3 (  0.0%)
+HONEYSUCKLE         :   2/ 46 (  4.3%)
+HOUSTONCOMMTECH1    :   0/ 36 (  0.0%)
+HOUSTONCOMMTECH2    :   1/ 58 (  1.7%)
+HOUSTONCOMMTECH3    :   0/ 16 (  0.0%)
+HOUSTONCOMMTECH4    :   1/  2 ( 50.0%)
+HOUSTONTV1          :   1/ 46 (  2.2%)
+HOUSTONTV2          :   0/  2 (  0.0%)
+HUNTSVILLE          :   0/  2 (  0.0%)
+INCO1               :   0/ 14 (  0.0%)
+INCO2               :   0/  4 (  0.0%)
+INCO3               :   0/  2 (  0.0%)
+INCO4               :   0/  4 (  0.0%)
+JACK                :   2/  4 ( 50.0%)
+JOHN                :   0/  3 (  0.0%)
+LC                  :   0/  3 (  0.0%)
+LCG2                :   0/  1 (  0.0%)
+LMPGNS              :   0/  3 (  0.0%)
+LMPROPULSION        :   0/  1 (  0.0%)
+LOADCONTROL         :   0/  3 (  0.0%)
+MADRID              :   0/ 79 (  0.0%)
+MADRIDCOMMTECH      :   0/ 14 (  0.0%)
+MCSC                :   2/  4 ( 50.0%)
+MECS                :   0/  6 (  0.0%)
+MEPS                :   0/  2 (  0.0%)
+MERCURY             :   0/ 11 (  0.0%)
+MGTC                :   0/  1 (  0.0%)
+MILA                :   0/ 14 (  0.0%)
+MLSC                :   2/  7 ( 28.6%)
+MSTC1               :   2/100 (  2.0%)
+MSTC2               :   0/  3 (  0.0%)
+NEIL                :   0/328 (  0.0%)
+NETWORK0            :   1/ 10 ( 10.0%)
+NETWORK1            :   0/117 (  0.0%)
+NETWORK2            :   0/ 88 (  0.0%)
+NETWORK3            :   0/136 (  0.0%)
+NETWORK4            :   0/  2 (  0.0%)
+NETWORK5            :   0/ 57 (  0.0%)
+NETWORK6            :   0/ 32 (  0.0%)
+NETWORK7            :   0/ 21 (  0.0%)
+NETWORK8            :   0/  6 (  0.0%)
+NETWORK9            :   0/  4 (  0.0%)
+NIXON               :   1/ 12 (  8.3%)
+NSCTM               :   1/  2 ( 50.0%)
+OPS                 :   0/ 18 (  0.0%)
+PAO                 :   1/  4 ( 25.0%)
+PETE                :   1/  2 ( 50.0%)
+PGNS                :   0/  1 (  0.0%)
+PLSS1               :   0/  6 (  0.0%)
+PLSS2               :   0/  4 (  0.0%)
+PLSSCOMM            :   0/  8 (  0.0%)
+POWERCORD           :   2/  2 (100.0%)
+PROCEDURES1         :   0/ 27 (  0.0%)
+PROCEDURES2         :   0/  4 (  0.0%)
+PROCEDURES3         :   0/  2 (  0.0%)
+PROPULSION1         :   0/ 31 (  0.0%)
+PROPULSION2         :   0/ 18 (  0.0%)
+PROPULSION3         :   5/ 44 ( 11.4%)
+PROPULSION4         :   0/  5 (  0.0%)
+RCS                 :   0/  2 (  0.0%)
+RECOVERY            :   0/  6 (  0.0%)
+REDSTONE            :   0/  7 (  0.0%)
+RETRO1              :   0/ 79 (  0.0%)
+RETRO2              :   1/ 15 (  6.7%)
+RETRO3              :   1/ 40 (  2.5%)
+RSO                 :   0/  3 (  0.0%)
+RTC1                :   0/ 15 (  0.0%)
+RTC2                :   0/  3 (  0.0%)
+RTC3                :   0/ 11 (  0.0%)
+RTC4                :   0/  8 (  0.0%)
+RTC5                :   0/  2 (  0.0%)
+SCHEDULING          :   0/  6 (  0.0%)
+SCOTTY              :   0/  4 (  0.0%)
+SELECT              :   0/  4 (  0.0%)
+SEQUENCER           :   0/  4 (  0.0%)
+SPAN1               :   2/ 30 (  6.7%)
+SPAN2               :   2/  2 (100.0%)
+SPAN3               :   0/  4 (  0.0%)
+SPAN4               :   0/  2 (  0.0%)
+SPAN5               :   0/ 17 (  0.0%)
+SPARKS              :   1/  2 ( 50.0%)
+SRO2                :   0/  5 (  0.0%)
+STATUS              :   0/  6 (  0.0%)
+STONY               :   0/  3 (  0.0%)
+SURGEON1            :   0/  8 (  0.0%)
+SURGEON2            :   0/  4 (  0.0%)
+SURGEON3            :   1/  3 ( 33.3%)
+SYDNEYVIDEO         :   3/  7 ( 42.9%)
+TANANARIVE          :   3/  4 ( 75.0%)
+TECHOPS1            :   0/  2 (  0.0%)
+TECHOPS2            :   0/  2 (  0.0%)
+TELCOM1             :   0/ 54 (  0.0%)
+TELCOM2             :   0/ 54 (  0.0%)
+TELCOM3             :   0/ 19 (  0.0%)
+TEXAS               :   0/  5 (  0.0%)
+TIC0                :   0/ 16 (  0.0%)
+TIC1                :   2/ 66 (  3.0%)
+TIC2                :   0/ 15 (  0.0%)
+TIC4                :   0/  5 (  0.0%)
+TIC5                :   0/  5 (  0.0%)
+TMSPK               :   0/  1 (  0.0%)
+TRACK0              :   0/ 26 (  0.0%)
+TRACK1              :   0/ 10 (  0.0%)
+TRACK2              :   0/  2 (  0.0%)
+TRACK3              :   0/  4 (  0.0%)
+TRACK4              :   0/ 33 (  0.0%)
+TRACK5              :   0/ 16 (  0.0%)
+TRACK6              :   0/  6 (  0.0%)
+TRAJECTORY1         :   0/  5 (  0.0%)
+TUCKER              :   2/  2 (100.0%)
+VANGUARD            :   0/  5 (  0.0%)
+VANGUARDCOMMTECH    :   0/  2 (  0.0%)
+VOICE               :   0/  7 (  0.0%)
+================================================================================
+
+Per-Speaker Precision (how often each predicted speaker is correct):
+--------------------------------------------------------------------------------
+Speaker               Predicted    Correct    Precision
+--------------------------------------------------------------------------------
+AFD3                         54          3         5.6%
+AGCSUPPORT                   45          1         2.2%
+ALSEP                         1          0         0.0%
+ANTIGUA                      62          0         0.0%
+ASCENSIONCOMMTECH            10          1        10.0%
+BOB                          93          0         0.0%
+BUZZ                          4          4       100.0%
+CALIFORNIA                   50          1         2.0%
+CANARYCOMMTECH              690          1         0.1%
+CAPCOM1                       5          4        80.0%
+CAPCOM3                       1          0         0.0%
+CAPCOM4                     143         19        13.3%
+CLTC                         12          2        16.7%
+COLLINS                       7          3        42.9%
+COMPUTERMNO                  31          0         0.0%
+CONSUMABLES                   4          0         0.0%
+CPSS                        139          0         0.0%
+CSANINE                      18          1         5.6%
+CSAT                        131          0         0.0%
+CVTS                          1          1       100.0%
+DISPLAY                       1          0         0.0%
+DYNAMICS                     29          0         0.0%
+ECS1                         12          7        58.3%
+ECS4                          1          0         0.0%
+EECOM1                        1          1       100.0%
+EECOM5                        2          2       100.0%
+EPE                          89          2         2.2%
+ERNIE                       165          2         1.2%
+FEMALE2                    1010          0         0.0%
+FEMALE3                     154          2         1.3%
+FLIGHTPLAN1                  10          0         0.0%
+FLIGHTPLAN2                  12          0         0.0%
+FLIGHTPLANSUPPORT             1          1       100.0%
+FORTYEIGHT                    5          0         0.0%
+FRANK                        46          1         2.2%
+GBM                          54          0         0.0%
+GEORGE                        1          0         0.0%
+GMIL                          3          0         0.0%
+GNN1                          8          6        75.0%
+GNN3                          8          2        25.0%
+GNN4                          3          1        33.3%
+GODDARDOPS                    2          1        50.0%
+GUAM                          5          0         0.0%
+GUAYMAS                       1          0         0.0%
+GUIDANCE1                     5          5       100.0%
+HARRY                        25          0         0.0%
+HAWAII                        1          0         0.0%
+HONEYSUCKLE                   2          2       100.0%
+HOUSTONCOMMTECH2              1          1       100.0%
+HOUSTONCOMMTECH4             44          1         2.3%
+HOUSTONTV1                    5          1        20.0%
+HOUSTONTV2                  113          0         0.0%
+HUNTSVILLE                    5          0         0.0%
+INCO3                        62          0         0.0%
+JACK                         18          2        11.1%
+JOHN                          3          0         0.0%
+LCG2                         88          0         0.0%
+LMPGNS                        1          0         0.0%
+LMPROPULSION                 12          0         0.0%
+MCSC                         10          2        20.0%
+MEPS                         37          0         0.0%
+MGTC                         54          0         0.0%
+MLSC                         15          2        13.3%
+MSTC1                         2          2       100.0%
+MSTC2                         1          0         0.0%
+NETWORK0                      1          1       100.0%
+NETWORK4                     93          0         0.0%
+NIXON                         1          1       100.0%
+NSCTM                       304          1         0.3%
+PAO                          12          1         8.3%
+PETE                         14          1         7.1%
+PGNS                         13          0         0.0%
+PLSS1                         1          0         0.0%
+POWERCORD                    66          2         3.0%
+PROPULSION3                  11          5        45.5%
+RCS                          32          0         0.0%
+RETRO2                        1          1       100.0%
+RETRO3                        3          1        33.3%
+RTC5                          1          0         0.0%
+SEQUENCER                     1          0         0.0%
+SPAN1                         2          2       100.0%
+SPAN2                       436          2         0.5%
+SPAN3                         1          0         0.0%
+SPAN4                         3          0         0.0%
+SPARKS                       37          1         2.7%
+STONY                         5          0         0.0%
+SURGEON3                      2          1        50.0%
+SYDNEYVIDEO                  15          3        20.0%
+TANANARIVE                  236          3         1.3%
+TECHOPS1                     35          0         0.0%
+TECHOPS2                     23          0         0.0%
+TIC1                          5          2        40.0%
+TIC5                         13          0         0.0%
+TMSPK                       639          0         0.0%
+TRACK2                      101          0         0.0%
+TRACK3                        1          0         0.0%
+TUCKER                      621          2         0.3%
+VANGUARDCOMMTECH             16          0         0.0%
+================================================================================
+
+'Sink' Speakers (predicted 10+ times with <50% precision):
+--------------------------------------------------------------------------------
+Speaker               Predicted    Correct    Precision
+--------------------------------------------------------------------------------
+FEMALE2                    1010          0         0.0%
+CANARYCOMMTECH              690          1         0.1%
+TMSPK                       639          0         0.0%
+TUCKER                      621          2         0.3%
+SPAN2                       436          2         0.5%
+NSCTM                       304          1         0.3%
+TANANARIVE                  236          3         1.3%
+ERNIE                       165          2         1.2%
+FEMALE3                     154          2         1.3%
+CAPCOM4                     143         19        13.3%
+CPSS                        139          0         0.0%
+CSAT                        131          0         0.0%
+HOUSTONTV2                  113          0         0.0%
+TRACK2                      101          0         0.0%
+BOB                          93          0         0.0%
+================================================================================
+
+Top 20 Speaker Confusions:
+--------------------------------------------------------------------------------
+Reference            Predicted As              Count
+--------------------------------------------------------------------------------
+FD1                  FEMALE2                     117
+FD1                  CANARYCOMMTECH               91
+BUZZ                 FEMALE2                      83
+NEIL                 FEMALE2                      83
+BUZZ                 CANARYCOMMTECH               81
+CAPCOM1              TUCKER                       79
+FD1                  TMSPK                        74
+FD1                  TUCKER                       62
+CAPCOM1              CANARYCOMMTECH               58
+CAPCOM2              FEMALE2                      58
+BUZZ                 TANANARIVE                   57
+COLLINS              FEMALE2                      52
+CAPCOM1              CAPCOM4                      49
+CAPCOM1              FEMALE2                      46
+NEIL                 CANARYCOMMTECH               45
+FD1                  SPAN2                        43
+CAPCOM1              SPAN2                        37
+CAPCOM1              CPSS                         35
+CAPCOM1              NSCTM                        35
+NEIL                 FEMALE3                      35
+================================================================================
+
+Report saved to: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/znorm_only_sid_report.txt
+
+############################################################
+# Processing embedding 2/2: resample_znorm.pkl
+############################################################
+Loaded speaker database with 218 speakers
+  Enrollment: SID/Train
+  Date: 2025-12-11 11:22:19
+  Preprocessing: Enabled
+  Z-norm stats: Available (218 speakers)
+============================================================
+Speaker Identification Report
+============================================================
+Embedding File: resample_znorm.pkl
+Test Dataset: SID/Dev
+Run Date: 2025-12-12 07:39:56
+
+Enrollment Info:
+  Source Dataset:      SID/Train
+  Enrollment Date:     2025-12-11 11:22:19
+  Speakers Enrolled:   218
+  Files Processed:     27336
+  Enrollment Preproc:  Enabled
+
+Identification Preprocessing: Using settings from PKL
+Score Normalization: znorm
+============================================================
+
+Processing 6373 files...
+Identifying speakers:   0% 0/6373 [00:00<?, ?file/s]Loading speaker embedding model: speechbrain/spkrec-ecapa-voxceleb
+Using device: cuda
+Model loaded successfully!
+Identifying speakers: 100% 6373/6373 [02:45<00:00, 38.50file/s]
+
+================================================================================
+BATCH PROCESSING SUMMARY
+================================================================================
+Total Files Processed: 6373
+Correct Predictions  : 1686
+Incorrect Predictions: 4687
+================================================================================
+
+Accuracy Metrics:
+--------------------------------------------------------------------------------
+Top-1 Accuracy       : 26.46%
+Top-3 Accuracy       : 42.07%
+Top-5 Accuracy       : 49.77%
+================================================================================
+
+Per-Speaker Recall (accuracy per reference speaker):
+--------------------------------------------------------------------------------
+AFD1                :   1/ 11 (  9.1%)
+AFD3                :   3/  4 ( 75.0%)
+AFD5                :  15/ 26 ( 57.7%)
+AGC                 :   0/  5 (  0.0%)
+AGCSUPPORT          :   1/  1 (100.0%)
+ALDS                :   0/  3 (  0.0%)
+ALSEP               :   5/  7 ( 71.4%)
+ANTIGUA             :   0/  2 (  0.0%)
+ARIA                :   0/  5 (  0.0%)
+ASCENSION           :   7/ 40 ( 17.5%)
+ASCENSIONCOMMTECH   :   2/  7 ( 28.6%)
+BERMUDA             :   1/  4 ( 25.0%)
+BERMUDACOMMTECH     :   0/  1 (  0.0%)
+BOB                 :   2/  2 (100.0%)
+BOOSTER1            :   2/ 33 (  6.1%)
+BUZZ                :  26/497 (  5.2%)
+CALIFORNIA          :   0/  1 (  0.0%)
+CANARY              :   2/ 10 ( 20.0%)
+CANARYCOMMTECH      :   1/  2 ( 50.0%)
+CAPCOM1             : 296/461 ( 64.2%)
+CAPCOM2             :  86/260 ( 33.1%)
+CAPCOM3             :  19/ 46 ( 41.3%)
+CAPCOM4             :  24/ 28 ( 85.7%)
+CARNARVON           :   2/  9 ( 22.2%)
+CCATSCOMMAND        :   1/  8 ( 12.5%)
+CCATSTELEMETRY      :   0/ 25 (  0.0%)
+CLTC                :   3/  4 ( 75.0%)
+COLLINS             :  14/132 ( 10.6%)
+COMM                :   0/  6 (  0.0%)
+COMMANAGER1         :   8/ 14 ( 57.1%)
+COMMCONTROL1        :   0/  6 (  0.0%)
+COMMCONTROL2        :   6/  8 ( 75.0%)
+COMMCONTROL3        :   3/ 28 ( 10.7%)
+COMMCONTROL4        :   0/  2 (  0.0%)
+COMPUTERMNO         :   1/  2 ( 50.0%)
+CONSUMABLES         :   0/  3 (  0.0%)
+CONTROL1            :   7/ 58 ( 12.1%)
+CONTROL2            :   0/ 18 (  0.0%)
+CPSPK               :   2/  4 ( 50.0%)
+CPSS                :   0/  2 (  0.0%)
+CSANINE             :   1/  2 ( 50.0%)
+CSAT                :   0/  1 (  0.0%)
+CTSC                :   1/  3 ( 33.3%)
+CVTS                :   4/ 19 ( 21.1%)
+DEPUTYLOM           :   0/  4 (  0.0%)
+DISPLAY             :   5/  6 ( 83.3%)
+DOCUMENTATION       :   1/  2 ( 50.0%)
+DONHUGHES           :   3/  3 (100.0%)
+DYNAMICS            :   1/  2 ( 50.0%)
+ECS1                :  24/ 43 ( 55.8%)
+ECS2                :   0/ 11 (  0.0%)
+ECS3                :   0/  6 (  0.0%)
+ECS4                :   9/ 12 ( 75.0%)
+EECOM1              :  28/135 ( 20.7%)
+EECOM2              :  34/ 51 ( 66.7%)
+EECOM3              :  38/ 76 ( 50.0%)
+EECOM5              :  31/ 45 ( 68.9%)
+EMU                 :  11/ 37 ( 29.7%)
+EPE                 :   3/  3 (100.0%)
+EPS1                :   6/  8 ( 75.0%)
+EPS2                :   1/ 35 (  2.9%)
+EPS3                :  13/ 17 ( 76.5%)
+ERNIE               :   2/  2 (100.0%)
+EVA                 :   0/ 17 (  0.0%)
+EXPERIMENTS         :   4/ 17 ( 23.5%)
+FAO1                :   5/ 46 ( 10.9%)
+FAO2                :   0/ 13 (  0.0%)
+FAO3                :   1/ 11 (  9.1%)
+FD1                 :   0/661 (  0.0%)
+FD2                 :   5/ 32 ( 15.6%)
+FD3                 :  35/164 ( 21.3%)
+FEMALE2             :   1/  2 ( 50.0%)
+FEMALE3             :   2/  2 (100.0%)
+FIDO1               :  18/150 ( 12.0%)
+FIDO2               :   0/  3 (  0.0%)
+FIDO3               :  17/ 58 ( 29.3%)
+FLIGHTPLAN1         :   3/  3 (100.0%)
+FLIGHTPLAN2         :   1/  1 (100.0%)
+FLIGHTPLANSUPPORT   :   2/  5 ( 40.0%)
+FORTYEIGHT          :   0/  2 (  0.0%)
+FRANK               :   3/  3 (100.0%)
+GBM                 :   0/  1 (  0.0%)
+GCC                 :   0/  3 (  0.0%)
+GEORGE              :   4/  5 ( 80.0%)
+GMIL                :   0/  2 (  0.0%)
+GNC1                :  37/106 ( 34.9%)
+GNC2                :  37/ 46 ( 80.4%)
+GNC3                :  16/ 32 ( 50.0%)
+GNC4                :  31/ 57 ( 54.4%)
+GNN1                :  29/ 32 ( 90.6%)
+GNN2                :  16/ 34 ( 47.1%)
+GNN3                :   3/  3 (100.0%)
+GNN4                :   5/  6 ( 83.3%)
+GODDARDOPS          :   1/  3 ( 33.3%)
+GODDARDVOICE        :   0/  7 (  0.0%)
+GOLDSTONE           :   0/ 53 (  0.0%)
+GOLDSTONECOMMTECH   :   0/  5 (  0.0%)
+GOLDSTONEVIDEO      :   0/  6 (  0.0%)
+GUAM                :   0/  2 (  0.0%)
+GUAYMAS             :   1/  2 ( 50.0%)
+GUIDANCE1           :  28/115 ( 24.3%)
+GUIDANCE2           :   2/  8 ( 25.0%)
+GUIDANCE3           :   6/ 60 ( 10.0%)
+GUIDANCE4           :   8/133 (  6.0%)
+HARRY               :   0/  1 (  0.0%)
+HAWAII              :   0/  3 (  0.0%)
+HONEYSUCKLE         :  10/ 46 ( 21.7%)
+HOUSTONCOMMTECH1    :   0/ 36 (  0.0%)
+HOUSTONCOMMTECH2    :  12/ 58 ( 20.7%)
+HOUSTONCOMMTECH3    :   9/ 16 ( 56.2%)
+HOUSTONCOMMTECH4    :   2/  2 (100.0%)
+HOUSTONTV1          :  32/ 46 ( 69.6%)
+HOUSTONTV2          :   0/  2 (  0.0%)
+HUNTSVILLE          :   2/  2 (100.0%)
+INCO1               :   2/ 14 ( 14.3%)
+INCO2               :   0/  4 (  0.0%)
+INCO3               :   2/  2 (100.0%)
+INCO4               :   0/  4 (  0.0%)
+JACK                :   3/  4 ( 75.0%)
+JOHN                :   3/  3 (100.0%)
+LC                  :   2/  3 ( 66.7%)
+LCG2                :   0/  1 (  0.0%)
+LMPGNS              :   0/  3 (  0.0%)
+LMPROPULSION        :   0/  1 (  0.0%)
+LOADCONTROL         :   0/  3 (  0.0%)
+MADRID              :   0/ 79 (  0.0%)
+MADRIDCOMMTECH      :   0/ 14 (  0.0%)
+MCSC                :   4/  4 (100.0%)
+MECS                :   1/  6 ( 16.7%)
+MEPS                :   1/  2 ( 50.0%)
+MERCURY             :   2/ 11 ( 18.2%)
+MGTC                :   0/  1 (  0.0%)
+MILA                :   0/ 14 (  0.0%)
+MLSC                :   2/  7 ( 28.6%)
+MSTC1               :  55/100 ( 55.0%)
+MSTC2               :   2/  3 ( 66.7%)
+NEIL                :  33/328 ( 10.1%)
+NETWORK0            :   9/ 10 ( 90.0%)
+NETWORK1            :  72/117 ( 61.5%)
+NETWORK2            :  37/ 88 ( 42.0%)
+NETWORK3            :  44/136 ( 32.4%)
+NETWORK4            :   1/  2 ( 50.0%)
+NETWORK5            :   9/ 57 ( 15.8%)
+NETWORK6            :  11/ 32 ( 34.4%)
+NETWORK7            :   4/ 21 ( 19.0%)
+NETWORK8            :   1/  6 ( 16.7%)
+NETWORK9            :   1/  4 ( 25.0%)
+NIXON               :  10/ 12 ( 83.3%)
+NSCTM               :   2/  2 (100.0%)
+OPS                 :   0/ 18 (  0.0%)
+PAO                 :   2/  4 ( 50.0%)
+PETE                :   2/  2 (100.0%)
+PGNS                :   0/  1 (  0.0%)
+PLSS1               :   6/  6 (100.0%)
+PLSS2               :   3/  4 ( 75.0%)
+PLSSCOMM            :   5/  8 ( 62.5%)
+POWERCORD           :   2/  2 (100.0%)
+PROCEDURES1         :   0/ 27 (  0.0%)
+PROCEDURES2         :   0/  4 (  0.0%)
+PROCEDURES3         :   0/  2 (  0.0%)
+PROPULSION1         :  16/ 31 ( 51.6%)
+PROPULSION2         :  14/ 18 ( 77.8%)
+PROPULSION3         :  35/ 44 ( 79.5%)
+PROPULSION4         :   0/  5 (  0.0%)
+RCS                 :   1/  2 ( 50.0%)
+RECOVERY            :   1/  6 ( 16.7%)
+REDSTONE            :   1/  7 ( 14.3%)
+RETRO1              :  15/ 79 ( 19.0%)
+RETRO2              :   9/ 15 ( 60.0%)
+RETRO3              :  16/ 40 ( 40.0%)
+RSO                 :   1/  3 ( 33.3%)
+RTC1                :   1/ 15 (  6.7%)
+RTC2                :   0/  3 (  0.0%)
+RTC3                :   1/ 11 (  9.1%)
+RTC4                :   3/  8 ( 37.5%)
+RTC5                :   2/  2 (100.0%)
+SCHEDULING          :   0/  6 (  0.0%)
+SCOTTY              :   4/  4 (100.0%)
+SELECT              :   1/  4 ( 25.0%)
+SEQUENCER           :   2/  4 ( 50.0%)
+SPAN1               :  24/ 30 ( 80.0%)
+SPAN2               :   1/  2 ( 50.0%)
+SPAN3               :   2/  4 ( 50.0%)
+SPAN4               :   1/  2 ( 50.0%)
+SPAN5               :   0/ 17 (  0.0%)
+SPARKS              :   1/  2 ( 50.0%)
+SRO2                :   0/  5 (  0.0%)
+STATUS              :   0/  6 (  0.0%)
+STONY               :   1/  3 ( 33.3%)
+SURGEON1            :   0/  8 (  0.0%)
+SURGEON2            :   0/  4 (  0.0%)
+SURGEON3            :   2/  3 ( 66.7%)
+SYDNEYVIDEO         :   0/  7 (  0.0%)
+TANANARIVE          :   1/  4 ( 25.0%)
+TECHOPS1            :   0/  2 (  0.0%)
+TECHOPS2            :   1/  2 ( 50.0%)
+TELCOM1             :   0/ 54 (  0.0%)
+TELCOM2             :  13/ 54 ( 24.1%)
+TELCOM3             :   5/ 19 ( 26.3%)
+TEXAS               :   0/  5 (  0.0%)
+TIC0                :   3/ 16 ( 18.8%)
+TIC1                :   8/ 66 ( 12.1%)
+TIC2                :   0/ 15 (  0.0%)
+TIC4                :   3/  5 ( 60.0%)
+TIC5                :   3/  5 ( 60.0%)
+TMSPK               :   1/  1 (100.0%)
+TRACK0              :   0/ 26 (  0.0%)
+TRACK1              :   0/ 10 (  0.0%)
+TRACK2              :   0/  2 (  0.0%)
+TRACK3              :   0/  4 (  0.0%)
+TRACK4              :  10/ 33 ( 30.3%)
+TRACK5              :   2/ 16 ( 12.5%)
+TRACK6              :   0/  6 (  0.0%)
+TRAJECTORY1         :   1/  5 ( 20.0%)
+TUCKER              :   2/  2 (100.0%)
+VANGUARD            :   0/  5 (  0.0%)
+VANGUARDCOMMTECH    :   1/  2 ( 50.0%)
+VOICE               :   0/  7 (  0.0%)
+================================================================================
+
+Per-Speaker Precision (how often each predicted speaker is correct):
+--------------------------------------------------------------------------------
+Speaker               Predicted    Correct    Precision
+--------------------------------------------------------------------------------
+AFD1                          1          1       100.0%
+AFD3                        321          3         0.9%
+AFD5                         24         15        62.5%
+AGC                           2          0         0.0%
+AGCSUPPORT                   64          1         1.6%
+ALDS                          2          0         0.0%
+ALSEP                        18          5        27.8%
+ANTIGUA                      20          0         0.0%
+ARIA                          1          0         0.0%
+ASCENSION                    19          7        36.8%
+ASCENSIONCOMMTECH            42          2         4.8%
+BERMUDA                       3          1        33.3%
+BERMUDACOMMTECH              12          0         0.0%
+BOB                          98          2         2.0%
+BOOSTER1                      4          2        50.0%
+BUZZ                         28         26        92.9%
+CALIFORNIA                   35          0         0.0%
+CANARY                        4          2        50.0%
+CANARYCOMMTECH               51          1         2.0%
+CAPCOM1                     321        296        92.2%
+CAPCOM2                     103         86        83.5%
+CAPCOM3                      22         19        86.4%
+CAPCOM4                      66         24        36.4%
+CARNARVON                     3          2        66.7%
+CCATSCOMMAND                  1          1       100.0%
+CLTC                         67          3         4.5%
+COLLINS                      16         14        87.5%
+COMM                          2          0         0.0%
+COMMANAGER1                  12          8        66.7%
+COMMCONTROL2                 13          6        46.2%
+COMMCONTROL3                  3          3       100.0%
+COMPUTERMNO                  79          1         1.3%
+CONSUMABLES                  45          0         0.0%
+CONTROL1                      7          7       100.0%
+CPSPK                         3          2        66.7%
+CPSS                         23          0         0.0%
+CSANINE                      26          1         3.8%
+CSAT                         79          0         0.0%
+CTSC                         14          1         7.1%
+CVTS                          5          4        80.0%
+DISPLAY                      21          5        23.8%
+DOCUMENTATION                 4          1        25.0%
+DONHUGHES                    24          3        12.5%
+DYNAMICS                      9          1        11.1%
+ECS1                         31         24        77.4%
+ECS3                          1          0         0.0%
+ECS4                         37          9        24.3%
+EECOM1                       31         28        90.3%
+EECOM2                       50         34        68.0%
+EECOM3                       50         38        76.0%
+EECOM5                       45         31        68.9%
+EMU                          22         11        50.0%
+EPE                          42          3         7.1%
+EPS1                         11          6        54.5%
+EPS2                          2          1        50.0%
+EPS3                         51         13        25.5%
+ERNIE                       140          2         1.4%
+EXPERIMENTS                   4          4       100.0%
+FAO1                          6          5        83.3%
+FAO2                          1          0         0.0%
+FAO3                          3          1        33.3%
+FD2                           7          5        71.4%
+FD3                          39         35        89.7%
+FEMALE2                     147          1         0.7%
+FEMALE3                     195          2         1.0%
+FIDO1                        20         18        90.0%
+FIDO3                        23         17        73.9%
+FLIGHTPLAN1                  11          3        27.3%
+FLIGHTPLAN2                  80          1         1.2%
+FLIGHTPLANSUPPORT            34          2         5.9%
+FORTYEIGHT                    8          0         0.0%
+FRANK                       133          3         2.3%
+GBM                         104          0         0.0%
+GEORGE                       11          4        36.4%
+GMIL                         18          0         0.0%
+GNC1                         40         37        92.5%
+GNC2                         73         37        50.7%
+GNC3                         19         16        84.2%
+GNC4                         60         31        51.7%
+GNN1                         60         29        48.3%
+GNN2                         17         16        94.1%
+GNN3                         32          3         9.4%
+GNN4                         34          5        14.7%
+GODDARDOPS                    7          1        14.3%
+GUAM                         10          0         0.0%
+GUAYMAS                       8          1        12.5%
+GUIDANCE1                    31         28        90.3%
+GUIDANCE2                    15          2        13.3%
+GUIDANCE3                    13          6        46.2%
+GUIDANCE4                    10          8        80.0%
+HARRY                         8          0         0.0%
+HAWAII                        1          0         0.0%
+HONEYSUCKLE                  11         10        90.9%
+HOUSTONCOMMTECH2             14         12        85.7%
+HOUSTONCOMMTECH3             23          9        39.1%
+HOUSTONCOMMTECH4             43          2         4.7%
+HOUSTONTV1                   76         32        42.1%
+HOUSTONTV2                   22          0         0.0%
+HUNTSVILLE                   46          2         4.3%
+INCO1                         4          2        50.0%
+INCO2                         1          0         0.0%
+INCO3                        57          2         3.5%
+JACK                        116          3         2.6%
+JOHN                         90          3         3.3%
+LC                           10          2        20.0%
+LCG2                         19          0         0.0%
+LMPROPULSION                 16          0         0.0%
+MADRIDCOMMTECH                9          0         0.0%
+MCSC                         14          4        28.6%
+MECS                          5          1        20.0%
+MEPS                          8          1        12.5%
+MERCURY                       3          2        66.7%
+MGTC                         32          0         0.0%
+MLSC                         16          2        12.5%
+MSTC1                        63         55        87.3%
+MSTC2                        24          2         8.3%
+NEIL                         45         33        73.3%
+NETWORK0                     45          9        20.0%
+NETWORK1                     97         72        74.2%
+NETWORK2                     44         37        84.1%
+NETWORK3                     53         44        83.0%
+NETWORK4                     43          1         2.3%
+NETWORK5                     12          9        75.0%
+NETWORK6                     20         11        55.0%
+NETWORK7                     13          4        30.8%
+NETWORK8                      1          1       100.0%
+NETWORK9                      9          1        11.1%
+NIXON                        27         10        37.0%
+NSCTM                       154          2         1.3%
+PAO                           8          2        25.0%
+PETE                         35          2         5.7%
+PGNS                         21          0         0.0%
+PLSS1                        45          6        13.3%
+PLSS2                       105          3         2.9%
+PLSSCOMM                     12          5        41.7%
+POWERCORD                    69          2         2.9%
+PROCEDURES2                  14          0         0.0%
+PROPULSION1                  29         16        55.2%
+PROPULSION2                  28         14        50.0%
+PROPULSION3                  48         35        72.9%
+RCS                          13          1         7.7%
+RECOVERY                      1          1       100.0%
+REDSTONE                      1          1       100.0%
+RETRO1                       18         15        83.3%
+RETRO2                       10          9        90.0%
+RETRO3                       24         16        66.7%
+RSO                           1          1       100.0%
+RTC1                          2          1        50.0%
+RTC3                          1          1       100.0%
+RTC4                          9          3        33.3%
+RTC5                          7          2        28.6%
+SCOTTY                       28          4        14.3%
+SELECT                        4          1        25.0%
+SEQUENCER                     5          2        40.0%
+SPAN1                        38         24        63.2%
+SPAN2                       142          1         0.7%
+SPAN3                        26          2         7.7%
+SPAN4                         6          1        16.7%
+SPARKS                       49          1         2.0%
+SRO2                          1          0         0.0%
+STONY                         1          1       100.0%
+SURGEON3                     47          2         4.3%
+TANANARIVE                   38          1         2.6%
+TECHOPS1                     17          0         0.0%
+TECHOPS2                     15          1         6.7%
+TELCOM2                      14         13        92.9%
+TELCOM3                       6          5        83.3%
+TIC0                         16          3        18.8%
+TIC1                         13          8        61.5%
+TIC4                          7          3        42.9%
+TIC5                        308          3         1.0%
+TMSPK                       116          1         0.9%
+TRACK2                       62          0         0.0%
+TRACK3                        6          0         0.0%
+TRACK4                       12         10        83.3%
+TRACK5                        2          2       100.0%
+TRAJECTORY1                   1          1       100.0%
+TUCKER                       90          2         2.2%
+VANGUARDCOMMTECH              5          1        20.0%
+================================================================================
+
+'Sink' Speakers (predicted 10+ times with <50% precision):
+--------------------------------------------------------------------------------
+Speaker               Predicted    Correct    Precision
+--------------------------------------------------------------------------------
+AFD3                        321          3         0.9%
+TIC5                        308          3         1.0%
+FEMALE3                     195          2         1.0%
+NSCTM                       154          2         1.3%
+FEMALE2                     147          1         0.7%
+SPAN2                       142          1         0.7%
+ERNIE                       140          2         1.4%
+FRANK                       133          3         2.3%
+TMSPK                       116          1         0.9%
+JACK                        116          3         2.6%
+PLSS2                       105          3         2.9%
+GBM                         104          0         0.0%
+BOB                          98          2         2.0%
+JOHN                         90          3         3.3%
+TUCKER                       90          2         2.2%
+================================================================================
+
+Top 20 Speaker Confusions:
+--------------------------------------------------------------------------------
+Reference            Predicted As              Count
+--------------------------------------------------------------------------------
+BUZZ                 TIC5                         49
+FD1                  TIC5                         49
+FD1                  SPAN2                        48
+CAPCOM1              NSCTM                        46
+FD1                  FRANK                        45
+NEIL                 FEMALE3                      43
+BUZZ                 CSAT                         41
+FD1                  AFD3                         38
+BUZZ                 AFD3                         35
+FD1                  BOB                          35
+FD1                  JOHN                         34
+FD1                  FEMALE3                      31
+FD1                  INCO3                        31
+NEIL                 NSCTM                        30
+BUZZ                 FEMALE2                      29
+CAPCOM2              AFD3                         27
+NEIL                 FEMALE2                      27
+NEIL                 HUNTSVILLE                   27
+EECOM1               AGCSUPPORT                   26
+CAPCOM1              AFD3                         25
+================================================================================
+
+Report saved to: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/resample_znorm_sid_report.txt

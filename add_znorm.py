@@ -9,7 +9,7 @@ import pickle
 from modules.speaker_identifier import compute_znorm_stats
 
 
-def add_znorm_to_pkl(input_path, output_path=None, sigma_floor=0.03):
+def add_znorm_to_pkl(input_path, output_path=None, sigma_floor=0.03, cohort_size=None):
     """
     Add z-norm statistics to a PKL file.
     
@@ -17,6 +17,7 @@ def add_znorm_to_pkl(input_path, output_path=None, sigma_floor=0.03):
         input_path: Path to the source PKL file
         output_path: Path to save output (None = update in place)
         sigma_floor: Minimum reliable sigma value (default 0.03)
+        cohort_size: Number of top impostors to use (None = all)
         
     Returns:
         True if successful, False otherwise
@@ -47,7 +48,7 @@ def add_znorm_to_pkl(input_path, output_path=None, sigma_floor=0.03):
         print(f"  Recomputing and overwriting...")
     
     print(f"  Computing z-norm statistics for {len(embeddings)} speakers...")
-    znorm_stats = compute_znorm_stats(embeddings, sigma_floor=sigma_floor)
+    znorm_stats = compute_znorm_stats(embeddings, sigma_floor=sigma_floor, cohort_size=cohort_size)
     
     if not znorm_stats:
         print(f"  Error: Failed to compute z-norm stats")
@@ -79,7 +80,10 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Update a single PKL file in place
+  # With cohort scoring (RECOMMENDED) - use top-50 hard negatives
+  python add_znorm.py baseline.pkl --cohort-size 50 --output znorm_cohort50.pkl
+
+  # Update a single PKL file in place (all impostors)
   python add_znorm.py model.pkl
 
   # Save to a new file (keeps original unchanged)
@@ -91,8 +95,17 @@ Examples:
 What this does:
   - Loads existing speaker embeddings from the PKL file
   - Computes impostor statistics (mean, std) for each speaker
+  - With --cohort-size N: uses only top-N most similar impostors (hard negatives)
   - Marks speakers with sigma < sigma_floor as "unreliable"
   - Saves the z-norm stats to the output file (or updates in place)
+
+Cohort Scoring (--cohort-size):
+  Instead of using all impostors, only uses the top-N most similar speakers.
+  This is the standard practice that:
+  - Produces larger, more stable sigma values
+  - Focuses statistics on confusing/similar speakers
+  - Avoids tiny sigma from including easy rejects
+  Recommended values: 50-100 for datasets with 100+ speakers.
   
   At inference time (sid_main.py --score-norm znorm):
   - Reliable speakers: z-normalized scores = (raw - mu) / sigma
@@ -109,6 +122,8 @@ What this does:
                         help='Output file path(s). If not specified, updates in place. If specified, must match number of input files.')
     parser.add_argument('--sigma-floor', type=float, default=0.03,
                         help='Minimum reliable sigma value (default: 0.03). Speakers with sigma below this use raw scores at inference.')
+    parser.add_argument('--cohort-size', type=int, default=None,
+                        help='Number of top impostors (hard negatives) to use for computing stats. Default: None (use all). Recommended: 50-100.')
     
     args = parser.parse_args()
     
@@ -121,12 +136,16 @@ What this does:
     print("=" * 60)
     print("Adding Z-Norm Statistics to PKL Files")
     print(f"Sigma floor: {args.sigma_floor}")
+    if args.cohort_size:
+        print(f"Cohort size: {args.cohort_size} (top-N hard negatives)")
+    else:
+        print("Cohort size: all impostors")
     print("=" * 60)
     
     success_count = 0
     for input_path, output_path in zip(args.pkl_files, output_files):
         print(f"\nProcessing: {input_path}")
-        if add_znorm_to_pkl(input_path, output_path, sigma_floor=args.sigma_floor):
+        if add_znorm_to_pkl(input_path, output_path, sigma_floor=args.sigma_floor, cohort_size=args.cohort_size):
             success_count += 1
     
     print(f"\n{'=' * 60}")
