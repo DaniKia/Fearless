@@ -7,7 +7,7 @@ import os
 import argparse
 from datetime import datetime
 from modules.data_loader import group_audio_by_speaker
-from modules.speaker_identifier import SpeakerIdentifier, compute_znorm_stats
+from modules.speaker_identifier import SpeakerIdentifier
 from modules.audio_preprocessor import PreprocessConfig
 import config
 
@@ -130,13 +130,8 @@ def enroll_speakers(folder, dataset, output_path, batch_size=16, preprocess_conf
     )
     
     if embeddings:
-        print(f"\nComputing z-norm statistics for score normalization...")
-        znorm_stats = compute_znorm_stats(embeddings)
-        identifier.znorm_stats = znorm_stats
-        identifier.save_database(output_path, include_znorm=True)
-        print(f"Z-norm stats computed for {len(znorm_stats)} speakers")
-        
         print(f"\nEnrollment complete! Database saved to: {output_path}")
+        print(f"To add z-norm score normalization, run: python add_znorm.py {output_path}")
         return True
     else:
         print("\nEnrollment failed!")
