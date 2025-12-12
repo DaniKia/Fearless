@@ -32,10 +32,58 @@ def normalize_embedding(embedding, method='l2'):
     return embedding
 
 
+def compute_znorm_stats(speaker_database):
+    """
+    Compute z-norm statistics for each speaker using other speakers as impostors.
+    
+    For each speaker, computes the mean and std of cosine similarities
+    with all other speaker centroids (impostors).
+    
+    Args:
+        speaker_database: Dictionary mapping speaker_id to embedding centroid
+        
+    Returns:
+        Dictionary mapping speaker_id to {'mu': float, 'sigma': float}
+    """
+    speaker_ids = list(speaker_database.keys())
+    n_speakers = len(speaker_ids)
+    
+    if n_speakers < 2:
+        print("Warning: Need at least 2 speakers to compute z-norm stats")
+        return {}
+    
+    znorm_stats = {}
+    
+    for target_id in speaker_ids:
+        target_embedding = speaker_database[target_id]
+        impostor_scores = []
+        
+        for impostor_id in speaker_ids:
+            if impostor_id == target_id:
+                continue
+            impostor_embedding = speaker_database[impostor_id]
+            
+            dot_product = np.dot(target_embedding, impostor_embedding)
+            norm1 = np.linalg.norm(target_embedding)
+            norm2 = np.linalg.norm(impostor_embedding)
+            similarity = dot_product / (norm1 * norm2)
+            impostor_scores.append(similarity)
+        
+        mu = np.mean(impostor_scores)
+        sigma = np.std(impostor_scores)
+        
+        if sigma < 1e-6:
+            sigma = 1e-6
+        
+        znorm_stats[target_id] = {'mu': mu, 'sigma': sigma}
+    
+    return znorm_stats
+
+
 class SpeakerIdentifier:
     """Speaker identification system with enrollment and prediction."""
     
-    def __init__(self, model_name=None, batch_size=16, normalize_method=None):
+    def __init__(self, model_name=None, batch_size=16, normalize_method=None, score_norm=None):
         """
         Initialize the speaker identifier.
         
@@ -43,14 +91,17 @@ class SpeakerIdentifier:
             model_name: Name of the embedding model (default from config)
             batch_size: Number of files to process per GPU batch (default: 16)
             normalize_method: Embedding normalization method ('l2' or None)
+            score_norm: Score normalization method ('znorm' or None)
         """
         self.model_name = model_name or config.SPEAKER_EMBEDDING_MODEL
         self.model = None
         self.speaker_database = None
         self.metadata = None
+        self.znorm_stats = None
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.batch_size = batch_size
         self.normalize_method = normalize_method
+        self.score_norm = score_norm
         
     def load_model(self):
         """Load the pre-trained embedding model."""
@@ -283,8 +334,8 @@ class SpeakerIdentifier:
         
         return all_embeddings
     
-    def save_database(self, save_path):
-        """Save speaker database to file with metadata."""
+    def save_database(self, save_path, include_znorm=True):
+        """Save speaker database to file with metadata and optional z-norm stats."""
         if self.speaker_database is None:
             print("No speaker database to save")
             return
@@ -294,6 +345,10 @@ class SpeakerIdentifier:
                 'embeddings': self.speaker_database,
                 'metadata': self.metadata
             }
+            
+            if include_znorm and self.znorm_stats is not None:
+                data['znorm_stats'] = self.znorm_stats
+            
             with open(save_path, 'wb') as f:
                 pickle.dump(data, f)
         except Exception as e:
@@ -308,9 +363,11 @@ class SpeakerIdentifier:
             if isinstance(data, dict) and 'embeddings' in data:
                 self.speaker_database = data['embeddings']
                 self.metadata = data.get('metadata')
+                self.znorm_stats = data.get('znorm_stats')
             else:
                 self.speaker_database = data
                 self.metadata = None
+                self.znorm_stats = None
             
             print(f"Loaded speaker database with {len(self.speaker_database)} speakers")
             if self.metadata:
@@ -324,6 +381,10 @@ class SpeakerIdentifier:
                     print(f"  Normalization: {norm_method}")
             else:
                 print("  (Legacy format - no metadata)")
+            
+            if self.znorm_stats:
+                print(f"  Z-norm stats: Available ({len(self.znorm_stats)} speakers)")
+            
             return True
         except Exception as e:
             print(f"Error loading database: {e}")
@@ -341,6 +402,9 @@ class SpeakerIdentifier:
         Returns:
             If top_k=1: (speaker_id, similarity_score)
             If top_k>1: List of (speaker_id, similarity_score) tuples
+            
+        Note: Scores are raw cosine similarity unless score_norm='znorm' is set,
+              in which case z-normalized scores are returned.
         """
         if self.speaker_database is None:
             print("Error: No speaker database loaded")
@@ -356,12 +420,24 @@ class SpeakerIdentifier:
         if self.normalize_method == 'l2':
             test_embedding = normalize_embedding(test_embedding, 'l2')
         
-        similarities = {}
+        raw_similarities = {}
         for speaker_id, speaker_embedding in self.speaker_database.items():
             similarity = self._cosine_similarity(test_embedding, speaker_embedding)
-            similarities[speaker_id] = similarity
+            raw_similarities[speaker_id] = similarity
         
-        sorted_speakers = sorted(similarities.items(), key=lambda x: x[1], reverse=True)
+        if self.score_norm == 'znorm' and self.znorm_stats:
+            scores = {}
+            for speaker_id, raw_score in raw_similarities.items():
+                stats = self.znorm_stats.get(speaker_id)
+                if stats:
+                    z_score = (raw_score - stats['mu']) / stats['sigma']
+                    scores[speaker_id] = z_score
+                else:
+                    scores[speaker_id] = raw_score
+        else:
+            scores = raw_similarities
+        
+        sorted_speakers = sorted(scores.items(), key=lambda x: x[1], reverse=True)
         
         if top_k == 1:
             return sorted_speakers[0]

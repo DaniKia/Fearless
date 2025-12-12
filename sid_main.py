@@ -157,7 +157,7 @@ class ReportWriter:
                 f.write('\n'.join(self.lines))
             print(f"\nReport saved to: {self.report_path}")
 
-def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID', embedding_path=None):
+def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID', embedding_path=None, score_norm=None):
     """
     Identify speaker from a single audio file.
     
@@ -167,6 +167,7 @@ def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID', emb
         dataset: Dataset name
         folder: Folder name (for display purposes)
         embedding_path: Path to embedding PKL file (uses default if None)
+        score_norm: Score normalization method ('znorm' or None)
     """
     audio_filename = os.path.basename(audio_path)
     
@@ -182,15 +183,22 @@ def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID', emb
         print("Please run enrollment first: python enroll.py --output speaker_database.pkl")
         return
     
-    identifier = SpeakerIdentifier()
+    identifier = SpeakerIdentifier(score_norm=score_norm)
     if not identifier.load_database(database_path):
         return
+    
+    if score_norm == 'znorm' and not identifier.znorm_stats:
+        print("Warning: --score-norm znorm requested but no z-norm stats in PKL. Using raw scores.")
+        identifier.score_norm = None
     
     preprocess_config = get_preprocess_config_from_metadata(identifier.metadata)
     if preprocess_config:
         print("  Using preprocessing settings from PKL")
     else:
         print("  Preprocessing: Disabled")
+    
+    if identifier.score_norm:
+        print(f"  Score normalization: {identifier.score_norm}")
     
     result = identifier.identify_speaker(audio_path, top_k=1, preprocess_config=preprocess_config)
     
@@ -199,7 +207,7 @@ def identify_single_file(audio_path, label_dir, dataset='Dev', folder='SID', emb
         display_comparison(audio_filename, reference_speaker, predicted_speaker, similarity)
 
 def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusion_matrix=False, 
-                   folder='SID', verbose=False, embedding_path=None, report_path=None):
+                   folder='SID', verbose=False, embedding_path=None, report_path=None, score_norm=None):
     """
     Identify speakers for multiple audio files.
     Uses preprocessing settings from the PKL file.
@@ -214,6 +222,7 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
         verbose: Whether to show per-file status
         embedding_path: Custom path to embedding pkl file
         report_path: Path to save report file
+        score_norm: Score normalization method ('znorm' or None)
     """
     from modules.sid_evaluator import display_batch_summary_extended
     
@@ -223,9 +232,13 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
         print("Please run enrollment first: python enroll.py --output speaker_database.pkl")
         return
     
-    identifier = SpeakerIdentifier()
+    identifier = SpeakerIdentifier(score_norm=score_norm)
     if not identifier.load_database(database_path):
         return
+    
+    if score_norm == 'znorm' and not identifier.znorm_stats:
+        print("Warning: --score-norm znorm requested but no z-norm stats in PKL. Using raw scores.")
+        identifier.score_norm = None
     
     preprocess_config = get_preprocess_config_from_metadata(identifier.metadata)
     
@@ -251,6 +264,11 @@ def identify_batch(audio_dir, label_dir, limit=None, dataset='Dev', show_confusi
         report.print("Identification Preprocessing: Using settings from PKL")
     else:
         report.print("Identification Preprocessing: Disabled (raw audio)")
+    
+    if identifier.score_norm:
+        report.print(f"Score Normalization: {identifier.score_norm}")
+    else:
+        report.print("Score Normalization: None (raw cosine similarity)")
     report.print("=" * 60)
     report.print("")
     report.print(f"Processing {len(pairs)} files...")
@@ -308,6 +326,9 @@ Examples:
   # Use a specific embedding file (auto-generates report)
   python sid_main.py --folder SID --dataset Dev --embedding model_v1.pkl
   
+  # Use z-norm score normalization (recommended)
+  python sid_main.py --folder SID --dataset Dev --embedding model_v1.pkl --score-norm znorm
+  
   # Compare multiple embedding files (creates separate reports)
   # Each PKL uses its own preprocessing settings from enrollment
   python sid_main.py --folder SID --dataset Dev --embedding baseline.pkl preprocessed.pkl
@@ -316,6 +337,7 @@ Examples:
   python sid_main.py --folder SID --dataset Dev --embedding model_v1.pkl --report my_results.txt
 
 Note: Preprocessing settings are automatically loaded from each PKL file.
+      Z-norm stats are computed during enrollment and stored in the PKL.
       Use enroll.py to create embedding pkl files before running identification.
         """
     )
@@ -374,6 +396,14 @@ Note: Preprocessing settings are automatically loaded from each PKL file.
         help='Custom report filename (only used with single embedding file). By default, report is named after the embedding file.'
     )
     
+    parser.add_argument(
+        '--score-norm',
+        type=str,
+        default=None,
+        choices=['znorm'],
+        help='Score normalization method. znorm: z-normalize scores using per-speaker impostor statistics. Requires z-norm stats in PKL (computed during enrollment).'
+    )
+    
     args = parser.parse_args()
     
     if args.file:
@@ -389,7 +419,8 @@ Note: Preprocessing settings are automatically loaded from each PKL file.
             print("Warning: Single file mode only supports one embedding file. Using first one.")
         
         embedding_path = args.embedding[0] if args.embedding else None
-        identify_single_file(audio_path, label_dir, dataset=args.dataset, folder=args.folder, embedding_path=embedding_path)
+        identify_single_file(audio_path, label_dir, dataset=args.dataset, folder=args.folder, 
+                            embedding_path=embedding_path, score_norm=args.score_norm)
     else:
         audio_dir = config.get_folder_audio_path(args.folder, args.dataset)
         label_dir = config.get_folder_label_path(args.folder, args.dataset)
@@ -425,7 +456,8 @@ Note: Preprocessing settings are automatically loaded from each PKL file.
                 folder=args.folder, 
                 verbose=args.verbose, 
                 embedding_path=embedding_path,
-                report_path=report_path
+                report_path=report_path,
+                score_norm=args.score_norm
             )
 
 if __name__ == "__main__":
