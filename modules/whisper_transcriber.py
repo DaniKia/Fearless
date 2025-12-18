@@ -2,11 +2,24 @@
 Whisper ASR transcriber module.
 """
 
+import sys
+import io
 import numpy as np
 import torch
 import whisper
+from contextlib import contextmanager
 
 _model_cache = {}
+
+@contextmanager
+def suppress_tqdm():
+    """Suppress tqdm progress bars by redirecting stderr temporarily."""
+    old_stderr = sys.stderr
+    sys.stderr = io.StringIO()
+    try:
+        yield
+    finally:
+        sys.stderr = old_stderr
 
 def load_whisper_model(model_name="tiny.en"):
     """
@@ -53,13 +66,14 @@ def transcribe_waveform(audio, sample_rate, model_name="tiny.en", include_timest
     
     audio_float32 = audio.astype(np.float32) if audio.dtype != np.float32 else audio
 
-    result = model.transcribe(
-        audio_float32,
-        language="en",
-        word_timestamps=include_timestamps,
-        verbose=False,
-        fp16=use_fp16
-    )
+    with suppress_tqdm():
+        result = model.transcribe(
+            audio_float32,
+            language="en",
+            word_timestamps=include_timestamps,
+            verbose=False,
+            fp16=use_fp16
+        )
     
     return {
         'text': result['text'].strip(),
@@ -102,13 +116,14 @@ def transcribe_audio(audio_path, model_name="tiny.en", include_timestamps=True, 
     model = load_whisper_model(model_name)
     use_fp16 = model.device.type != "cpu"
 
-    result = model.transcribe(
-        audio_path,
-        language="en",
-        word_timestamps=include_timestamps,
-        verbose=False,
-        fp16=use_fp16
-    )
+    with suppress_tqdm():
+        result = model.transcribe(
+            audio_path,
+            language="en",
+            word_timestamps=include_timestamps,
+            verbose=False,
+            fp16=use_fp16
+        )
     
     return {
         'text': result['text'].strip(),
