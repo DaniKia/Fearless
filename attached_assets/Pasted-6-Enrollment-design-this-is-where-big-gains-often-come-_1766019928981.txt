@@ -1,0 +1,43 @@
+6) Enrollment design (this is where big gains often come)
+
+“Define the enrollment policy: how many segments per speaker are used, any caps, any quality filters, and how the centroid is computed.”
+
+“Explain the --normalize flag precisely: when normalization happens (per-embedding vs centroid) and whether it affects stored vectors.”
+
+“What metadata is written into the enrollment PKL (dataset, split, timestamps, preprocessing flags, counts, speaker list)?”
+
+“Does enroll.py support producing multiple outputs in one run? If yes, explain how it’s implemented and what stays identical.”
+
+7) Scoring backend and decision rule
+
+“Define the scoring function used at inference (cosine similarity). Is it raw dot product on L2-normalized vectors or computed another way?”
+
+“How is Top-K produced (full sort vs partial)? Any ties handling?”
+
+“Is there any thresholding or ‘unknown’ label logic? If not, where would it plug in?”
+
+8) Z-norm (score normalization) implementation correctness
+
+“Explain z-norm implementation end-to-end: cohort definition, how μ/σ are computed per speaker, and how they’re applied at inference.”
+
+“Confirm how --cohort-size works: is it ‘top-N most similar impostors’ and how is similarity computed?”
+
+“Explain sigma-floor and reliability: how ‘unreliable’ is defined, how fallback to raw cosine is implemented, and where.”
+
+“Does add_znorm.py modify PKLs in place safely (atomic write, backups)? Describe failure modes.”
+
+9) Evaluation reports (what exactly gets printed/saved)
+
+“List every metric produced by sid_evaluator: Top-1/3/5, per-speaker precision/recall, sink speaker report, confusion pairs. Where is each computed?”
+
+“Explain the confusion table generation: how counts are aggregated and how the ‘Top confusions’ list is built.”
+
+“Confirm the exact definition of ‘sink speaker’ used (predicted >= N with precision < X). Are N and X configurable?”
+
+10) Audio quality analysis (paper-ready dataset characterization)
+
+“Explain how rms_db, peak_amp, and clip_ratio are computed (formulae, thresholds). Are signals assumed in [-1,1]?”
+
+“Does the tool sample all files or subset? Does it preprocess before measuring? Clarify.”
+
+“Where is the --audio-quality flag parsed and how does it select folders/splits?”

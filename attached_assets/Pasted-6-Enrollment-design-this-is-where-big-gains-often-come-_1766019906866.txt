@@ -1,0 +1,73 @@
+6) Enrollment design (this is where big gains often come)
+
+“Define the enrollment policy: how many segments per speaker are used, any caps, any quality filters, and how the centroid is computed.”
+
+“Explain the --normalize flag precisely: when normalization happens (per-embedding vs centroid) and whether it affects stored vectors.”
+
+“What metadata is written into the enrollment PKL (dataset, split, timestamps, preprocessing flags, counts, speaker list)?”
+
+“Does enroll.py support producing multiple outputs in one run? If yes, explain how it’s implemented and what stays identical.”
+
+7) Scoring backend and decision rule
+
+“Define the scoring function used at inference (cosine similarity). Is it raw dot product on L2-normalized vectors or computed another way?”
+
+“How is Top-K produced (full sort vs partial)? Any ties handling?”
+
+“Is there any thresholding or ‘unknown’ label logic? If not, where would it plug in?”
+
+8) Z-norm (score normalization) implementation correctness
+
+“Explain z-norm implementation end-to-end: cohort definition, how μ/σ are computed per speaker, and how they’re applied at inference.”
+
+“Confirm how --cohort-size works: is it ‘top-N most similar impostors’ and how is similarity computed?”
+
+“Explain sigma-floor and reliability: how ‘unreliable’ is defined, how fallback to raw cosine is implemented, and where.”
+
+“Does add_znorm.py modify PKLs in place safely (atomic write, backups)? Describe failure modes.”
+
+9) Evaluation reports (what exactly gets printed/saved)
+
+“List every metric produced by sid_evaluator: Top-1/3/5, per-speaker precision/recall, sink speaker report, confusion pairs. Where is each computed?”
+
+“Explain the confusion table generation: how counts are aggregated and how the ‘Top confusions’ list is built.”
+
+“Confirm the exact definition of ‘sink speaker’ used (predicted >= N with precision < X). Are N and X configurable?”
+
+10) Audio quality analysis (paper-ready dataset characterization)
+
+“Explain how rms_db, peak_amp, and clip_ratio are computed (formulae, thresholds). Are signals assumed in [-1,1]?”
+
+“Does the tool sample all files or subset? Does it preprocess before measuring? Clarify.”
+
+“Where is the --audio-quality flag parsed and how does it select folders/splits?”
+
+11) Determinism, performance, and scalability
+
+“Which parts are deterministic vs non-deterministic (GPU ops, random seeds, batching order)? Is there a seed flag?”
+
+“Give me throughput numbers available from logs (files/sec) and identify bottlenecks (I/O vs embedding vs whisper).”
+
+“Is batch size used consistently across enroll and inference? Where does it matter and where is it ignored?”
+
+12) Failure handling and edge cases (operational quality)
+
+“List all error handling paths: missing audio, decode failures, missing labels, empty waveform after trim, etc. What gets skipped vs fatal?”
+
+“Do we log skipped files with reasons to a structured output (CSV/JSON)? If not, recommend where to add it.”
+
+13) “Paper extraction” prompts (turn repo into manuscript-ready content)
+
+“Write a Methods section outline using ONLY what’s implemented in the repo: ASR frontend, SID frontend, scoring backend, z-norm, evaluation protocol.”
+
+“Generate a Reproducibility checklist: exact commands to reproduce baseline and each major experiment (preprocess off vs on, z-norm off vs on).”
+
+“Extract all default hyperparameters and put them in a single table: preprocessing params, enrollment params, scoring params, z-norm params.”
+
+14) Quick sanity checks (to catch hidden mismatches)
+
+“Verify enrollment and inference preprocessing match when using PKL metadata. Show the exact code path and confirm no overrides happen silently.”
+
+“Confirm that ASR and SID do not accidentally apply different resampling/normalization when preprocessing is enabled.”
+
+“Check whether any modules still load audio directly (bypassing audio_io). If yes, list them and exact lines.”
