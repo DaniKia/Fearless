@@ -1,0 +1,45 @@
+================================================================================
+ASR Pipeline with Whisper
+================================================================================
+Phase: Phase3
+Folder: ASR_track2
+Dataset: Dev
+Whisper Model: tiny.en
+Preprocessing: DISABLED (baseline)
+================================================================================
+Detected Colab environment
+Google Drive already mounted
+
+Audio directory: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev
+Transcript directory: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Transcripts/ASR_track2/Dev
+Loaded 9203 transcripts from Dev dataset
+============================================================
+ASR Transcription Report
+============================================================
+Dataset: ASR_track2/Dev
+Whisper Model: tiny.en
+Run Date: 2025-12-18 07:45:00
+
+Preprocessing: DISABLED (baseline)
+============================================================
+
+Processing 9203 files...
+
+Transcribing:   0% 0/9203 [00:00<?, ?file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0001.wav
+Loading Whisper model: tiny.en (FP16 on cuda)...
+Model loaded successfully
+
+  0% 0/466 [00:00<?, ?frames/s]
+Transcribing:   0% 1/9203 [00:01<4:39:45,  1.82s/file]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0002.wav
+
+  0% 0/709 [00:00<?, ?frames/s]
+100% 709/709 [00:02<00:00, 307.93frames/s]
+Transcribing:   0% 2/9203 [00:04<5:34:53,  2.18s/file]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0003.wav
+
+  0% 0/619 [00:00<?, ?frames/s]
+100% 619/619 [00:00<00:00, 3950.03frames/s]
+Transcribing:   0% 3/9203 [00:04<3:21:43,  1.32s/file]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0004.wav
+
+  0% 0/686 [00:00<?, ?frames/s]
+100% 686/686 [00:00<00:00, 3515.48frames/s]
+Transcribing:   0% 4/9203 [00:04<2:21:23,  1.08file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0005.wav

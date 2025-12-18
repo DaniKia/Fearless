@@ -1,0 +1,431 @@
+================================================================================
+ASR Pipeline with Whisper
+================================================================================
+Phase: Phase3
+Folder: ASR_track2
+Dataset: Dev
+Whisper Model: tiny.en
+Preprocessing: DISABLED (baseline)
+================================================================================
+Detected Colab environment
+Google Drive already mounted
+
+Audio directory: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev
+Transcript directory: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Transcripts/ASR_track2/Dev
+Loaded 9203 transcripts from Dev dataset
+============================================================
+ASR Transcription Report
+============================================================
+Dataset: ASR_track2/Dev
+Whisper Model: tiny.en
+Run Date: 2025-12-18 07:45:00
+
+Preprocessing: DISABLED (baseline)
+============================================================
+
+Processing 9203 files...
+
+Transcribing:   0% 0/9203 [00:00<?, ?file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0001.wav
+Loading Whisper model: tiny.en (FP16 on cuda)...
+Model loaded successfully
+
+  0% 0/466 [00:00<?, ?frames/s]
+Transcribing:   0% 1/9203 [00:01<4:39:45,  1.82s/file]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0002.wav
+
+  0% 0/709 [00:00<?, ?frames/s]
+100% 709/709 [00:02<00:00, 307.93frames/s]
+Transcribing:   0% 2/9203 [00:04<5:34:53,  2.18s/file]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0003.wav
+
+  0% 0/619 [00:00<?, ?frames/s]
+100% 619/619 [00:00<00:00, 3950.03frames/s]
+Transcribing:   0% 3/9203 [00:04<3:21:43,  1.32s/file]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0004.wav
+
+  0% 0/686 [00:00<?, ?frames/s]
+100% 686/686 [00:00<00:00, 3515.48frames/s]
+Transcribing:   0% 4/9203 [00:04<2:21:23,  1.08file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0005.wav
+
+  0% 0/589 [00:00<?, ?frames/s]
+100% 589/589 [00:00<00:00, 598.95frames/s]
+Transcribing:   0% 5/9203 [00:05<2:31:52,  1.01file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0006.wav
+
+  0% 0/403 [00:00<?, ?frames/s]
+100% 403/403 [00:00<00:00, 3030.56frames/s]
+Transcribing:   0% 6/9203 [00:06<2:24:08,  1.06file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0007.wav
+
+  0% 0/290 [00:00<?, ?frames/s]
+ 66% 190/290 [00:00<00:00, 447.64frames/s]
+Transcribing:   0% 7/9203 [00:07<2:24:00,  1.06file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0008.wav
+
+  0% 0/255 [00:00<?, ?frames/s]
+100% 255/255 [00:00<00:00, 645.38frames/s]
+Transcribing:   0% 8/9203 [00:08<2:22:45,  1.07file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0009.wav
+
+  0% 0/836 [00:00<?, ?frames/s]
+100% 836/836 [00:00<00:00, 2852.91frames/s]
+Transcribing:   0% 9/9203 [00:09<2:18:24,  1.11file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0010.wav
+
+  0% 0/138 [00:00<?, ?frames/s]
+100% 138/138 [00:00<00:00, 253.08frames/s]
+Transcribing:   0% 10/9203 [00:10<2:25:47,  1.05file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0011.wav
+
+  0% 0/52 [00:00<?, ?frames/s]
+100% 52/52 [00:00<00:00, 143.80frames/s]
+Transcribing:   0% 11/9203 [00:11<2:28:35,  1.03file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0012.wav
+
+  0% 0/342 [00:00<?, ?frames/s]
+100% 342/342 [00:00<00:00, 2140.49frames/s]
+Transcribing:   0% 12/9203 [00:12<2:20:29,  1.09file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0013.wav
+
+  0% 0/107 [00:00<?, ?frames/s]
+ 39% 42/107 [00:00<00:00, 83.96frames/s]
+100% 107/107 [00:00<00:00, 111.30frames/s]
+Transcribing:   0% 13/9203 [00:13<2:48:30,  1.10s/file]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0014.wav
+
+  0% 0/268 [00:00<?, ?frames/s]
+100% 268/268 [00:00<00:00, 2499.75frames/s]
+Transcribing:   0% 14/9203 [00:14<2:27:16,  1.04file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0015.wav
+
+  0% 0/274 [00:00<?, ?frames/s]
+100% 274/274 [00:00<00:00, 471.65frames/s]
+Transcribing:   0% 15/9203 [00:15<2:33:28,  1.00s/file]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0016.wav
+
+  0% 0/200 [00:00<?, ?frames/s]
+100% 200/200 [00:00<00:00, 1388.72frames/s]
+Transcribing:   0% 16/9203 [00:16<2:15:46,  1.13file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0017.wav
+
+  0% 0/190 [00:00<?, ?frames/s]
+100% 190/190 [00:00<00:00, 1697.56frames/s]
+Transcribing:   0% 17/9203 [00:16<2:03:09,  1.24file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0018.wav
+
+  0% 0/333 [00:00<?, ?frames/s]
+100% 333/333 [00:00<00:00, 2006.17frames/s]
+Transcribing:   0% 18/9203 [00:17<1:39:45,  1.53file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0019.wav
+
+  0% 0/318 [00:00<?, ?frames/s]
+100% 318/318 [00:00<00:00, 577.17frames/s]
+Transcribing:   0% 19/9203 [00:18<1:58:41,  1.29file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0020.wav
+
+  0% 0/506 [00:00<?, ?frames/s]
+100% 506/506 [00:00<00:00, 4601.64frames/s]
+Transcribing:   0% 20/9203 [00:18<1:53:15,  1.35file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0021.wav
+
+  0% 0/186 [00:00<?, ?frames/s]
+100% 186/186 [00:00<00:00, 528.13frames/s]
+Transcribing:   0% 21/9203 [00:19<1:59:32,  1.28file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0022.wav
+
+  0% 0/121 [00:00<?, ?frames/s]
+100% 121/121 [00:01<00:00, 63.35frames/s]
+Transcribing:   0% 22/9203 [00:22<3:15:42,  1.28s/file]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0023.wav
+
+  0% 0/268 [00:00<?, ?frames/s]
+100% 268/268 [00:00<00:00, 437.92frames/s]
+Transcribing:   0% 23/9203 [00:23<3:12:11,  1.26s/file]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0024.wav
+
+  0% 0/1172 [00:00<?, ?frames/s]
+100% 1172/1172 [00:00<00:00, 2318.12frames/s]
+Transcribing:   0% 24/9203 [00:25<3:55:55,  1.54s/file]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0025.wav
+
+100% 176/176 [00:00<00:00, 2193.71frames/s]
+Transcribing:   0% 25/9203 [00:26<3:10:59,  1.25s/file]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0026.wav
+
+  0% 0/345 [00:00<?, ?frames/s]
+100% 345/345 [00:00<00:00, 2395.94frames/s]
+Transcribing:   0% 26/9203 [00:26<2:45:35,  1.08s/file]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0027.wav
+
+100% 106/106 [00:00<00:00, 1524.42frames/s]
+Transcribing:   0% 27/9203 [00:27<2:24:53,  1.06file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0028.wav
+
+  0% 0/153 [00:00<?, ?frames/s]
+100% 153/153 [00:00<00:00, 884.86frames/s]
+Transcribing:   0% 28/9203 [00:28<2:12:29,  1.15file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0029.wav
+
+  0% 0/241 [00:00<?, ?frames/s]
+Transcribing:   0% 29/9203 [00:28<1:57:17,  1.30file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0030.wav
+
+100% 219/219 [00:00<00:00, 2676.69frames/s]
+Transcribing:   0% 30/9203 [00:29<1:48:16,  1.41file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0031.wav
+
+  0% 0/147 [00:00<?, ?frames/s]
+Transcribing:   0% 30/9203 [00:29<2:31:45,  1.01file/s]
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/dist-packages/whisper/decoding.py", line 687, in _main_loop
+    logits = self.inference.logits(tokens, audio_features)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/decoding.py", line 163, in logits
+    return self.model.decoder(tokens, audio_features, kv_cache=self.kv_cache)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/model.py", line 242, in forward
+    x = block(x, xa, mask=self.mask, kv_cache=kv_cache)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/model.py", line 167, in forward
+    x = x + self.attn(self.attn_ln(x), mask=mask, kv_cache=kv_cache)[0]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/model.py", line 111, in forward
+    wv, qk = self.qkv_attention(q, k, v, mask)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/model.py", line 119, in qkv_attention
+    q = q.view(*q.shape[:2], self.n_head, -1).permute(0, 2, 1, 3)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/content/Fearless/Fearless/Fearless/Fearless/main.py", line 361, in <module>
+    main()
+  File "/content/Fearless/Fearless/Fearless/Fearless/main.py", line 348, in main
+    run_batch(
+  File "/content/Fearless/Fearless/Fearless/Fearless/main.py", line 166, in run_batch
+    hypothesis = transcribe_audio(audio_path, model_name=model_name or config.WHISPER_MODEL, preprocess_config=preprocess_config)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/Fearless/Fearless/Fearless/Fearless/modules/whisper_transcriber.py", line 107, in transcribe_audio
+    result = model.transcribe(
+             ^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/transcribe.py", line 295, in transcribe
+    result: DecodingResult = decode_with_fallback(mel_segment)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/transcribe.py", line 201, in decode_with_fallback
+    decode_result = model.decode(segment, options)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/decoding.py", line 824, in decode
+    result = DecodingTask(model, options).run(mel)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/decoding.py", line 737, in run
+    tokens, sum_logprobs, no_speech_probs = self._main_loop(audio_features, tokens)
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/decoding.py", line 708, in _main_loop
+    self.inference.cleanup_caching()
+  File "/usr/local/lib/python3.12/dist-packages/whisper/decoding.py", line 167, in cleanup_caching
+    hook.remove()
+  File "/usr/local/lib/python3.12/dist-packages/torch/utils/hooks.py", line 36, in remove
+    hooks_dict = self.hooks_dict_ref()
+                 ^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+^C
+================================================================================
+ASR Pipeline with Whisper
+================================================================================
+Phase: Phase3
+Folder: ASR_track2
+Dataset: Dev
+Whisper Model: tiny.en
+Preprocessing: ENABLED
+  Steps: mono, resample(16000Hz), dc-removal, bandpass(80-7500Hz), rms-norm(-20.0dB), trim(30.0dB)
+================================================================================
+Detected Colab environment
+Google Drive already mounted
+
+Audio directory: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev
+Transcript directory: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Transcripts/ASR_track2/Dev
+Loaded 9203 transcripts from Dev dataset
+============================================================
+ASR Transcription Report
+============================================================
+Dataset: ASR_track2/Dev
+Whisper Model: tiny.en
+Run Date: 2025-12-18 07:45:33
+
+Preprocessing: ENABLED
+  Steps: mono, resample(16000Hz), dc-removal, bandpass(80-7500Hz), rms-norm(-20.0dB), trim(30.0dB)
+============================================================
+
+Processing 9203 files...
+
+Transcribing:   0% 0/9203 [00:00<?, ?file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0001.wav
+Loading Whisper model: tiny.en (FP16 on cuda)...
+Model loaded successfully
+
+  0% 0/466 [00:01<?, ?frames/s]
+Transcribing:   0% 1/9203 [00:03<8:30:08,  3.33s/file]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0002.wav
+
+  0% 0/709 [00:00<?, ?frames/s]
+100% 709/709 [00:02<00:00, 250.72frames/s]
+Transcribing:   0% 2/9203 [00:06<7:49:38,  3.06s/file]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0003.wav
+
+  0% 0/619 [00:00<?, ?frames/s]
+100% 619/619 [00:00<00:00, 3744.95frames/s]
+Transcribing:   0% 3/9203 [00:06<4:29:14,  1.76s/file]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0004.wav
+
+  0% 0/686 [00:00<?, ?frames/s]
+100% 686/686 [00:00<00:00, 3569.55frames/s]
+Transcribing:   0% 4/9203 [00:06<2:56:41,  1.15s/file]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0005.wav
+
+  0% 0/589 [00:00<?, ?frames/s]
+ 69% 404/589 [00:00<00:00, 528.22frames/s]
+100% 589/589 [00:01<00:00, 480.53frames/s]
+Transcribing:   0% 5/9203 [00:07<3:02:35,  1.19s/file]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0006.wav
+
+  0% 0/403 [00:00<?, ?frames/s]
+100% 403/403 [00:00<00:00, 2813.51frames/s]
+Transcribing:   0% 6/9203 [00:08<2:09:37,  1.18file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0007.wav
+
+  0% 0/290 [00:00<?, ?frames/s]
+100% 290/290 [00:00<00:00, 810.74frames/s]
+Transcribing:   0% 7/9203 [00:08<1:46:25,  1.44file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0008.wav
+
+  0% 0/255 [00:00<?, ?frames/s]
+100% 255/255 [00:00<00:00, 580.74frames/s]
+Transcribing:   0% 8/9203 [00:08<1:35:28,  1.61file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0009.wav
+
+  0% 0/836 [00:00<?, ?frames/s]
+100% 836/836 [00:00<00:00, 1018.25frames/s]
+Transcribing:   0% 9/9203 [00:09<1:46:39,  1.44file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0010.wav
+
+  0% 0/138 [00:00<?, ?frames/s]
+100% 138/138 [00:00<00:00, 953.37frames/s]
+Transcribing:   0% 10/9203 [00:09<1:21:46,  1.87file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0011.wav
+
+  0% 0/51 [00:00<?, ?frames/s]
+100% 51/51 [00:00<00:00, 346.99frames/s]
+Transcribing:   0% 11/9203 [00:10<1:04:54,  2.36file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0012.wav
+
+100% 342/342 [00:00<00:00, 3617.38frames/s]
+Transcribing:   0% 12/9203 [00:10<50:52,  3.01file/s]  Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0013.wav
+
+  0% 0/107 [00:00<?, ?frames/s]
+100% 107/107 [00:00<00:00, 280.29frames/s]
+Transcribing:   0% 13/9203 [00:10<54:08,  2.83file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0014.wav
+
+  0% 0/268 [00:00<?, ?frames/s]
+100% 268/268 [00:00<00:00, 494.07frames/s]
+Transcribing:   0% 14/9203 [00:11<1:03:54,  2.40file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0015.wav
+
+  0% 0/274 [00:00<?, ?frames/s]
+100% 274/274 [00:00<00:00, 657.48frames/s]
+Transcribing:   0% 15/9203 [00:11<1:04:55,  2.36file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0016.wav
+
+100% 200/200 [00:00<00:00, 2752.16frames/s]
+Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0017.wav
+
+  0% 0/190 [00:00<?, ?frames/s]
+100% 190/190 [00:00<00:00, 365.12frames/s]
+Transcribing:   0% 17/9203 [00:12<57:26,  2.67file/s]  Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0018.wav
+
+  0% 0/333 [00:00<?, ?frames/s]
+100% 333/333 [00:00<00:00, 2079.82frames/s]
+Transcribing:   0% 18/9203 [00:12<50:15,  3.05file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0019.wav
+
+  0% 0/318 [00:00<?, ?frames/s]
+100% 318/318 [00:00<00:00, 547.01frames/s]
+Transcribing:   0% 19/9203 [00:13<1:01:29,  2.49file/s]Transcribing: /content/drive/MyDrive/Fearless_Steps_Challenge_Phase3/FSC_P3_Train_Dev/Audio/Segments/ASR_track2/Dev/fsc_p3_ASR_track2_dev_0020.wav
+
+Transcribing:   0% 19/9203 [00:13<1:49:07,  1.40file/s]
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/dist-packages/whisper/transcribe.py", line 295, in transcribe
+    result: DecodingResult = decode_with_fallback(mel_segment)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/transcribe.py", line 201, in decode_with_fallback
+    decode_result = model.decode(segment, options)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/decoding.py", line 824, in decode
+    result = DecodingTask(model, options).run(mel)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/decoding.py", line 737, in run
+    tokens, sum_logprobs, no_speech_probs = self._main_loop(audio_features, tokens)
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/decoding.py", line 687, in _main_loop
+    logits = self.inference.logits(tokens, audio_features)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/decoding.py", line 163, in logits
+    return self.model.decoder(tokens, audio_features, kv_cache=self.kv_cache)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/model.py", line 242, in forward
+    x = block(x, xa, mask=self.mask, kv_cache=kv_cache)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/model.py", line 167, in forward
+    x = x + self.attn(self.attn_ln(x), mask=mask, kv_cache=kv_cache)[0]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/model.py", line 105, in forward
+    v = self.value(x if xa is None else xa)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1881, in _call_impl
+    return inner()
+           ^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/torch/nn/modules/module.py", line 1842, in inner
+    hook_result = hook(self, args, result)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/model.py", line 332, in save_to_cache
+    cache[module] = torch.cat([cache[module], output], dim=1).detach()
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/content/Fearless/Fearless/Fearless/Fearless/main.py", line 361, in <module>
+    main()
+  File "/content/Fearless/Fearless/Fearless/Fearless/main.py", line 348, in main
+    run_batch(
+  File "/content/Fearless/Fearless/Fearless/Fearless/main.py", line 166, in run_batch
+    hypothesis = transcribe_audio(audio_path, model_name=model_name or config.WHISPER_MODEL, preprocess_config=preprocess_config)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/Fearless/Fearless/Fearless/Fearless/modules/whisper_transcriber.py", line 102, in transcribe_audio
+    return transcribe_waveform(result.waveform, result.sample_rate, model_name, include_timestamps)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/content/Fearless/Fearless/Fearless/Fearless/modules/whisper_transcriber.py", line 56, in transcribe_waveform
+    result = model.transcribe(
+             ^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/whisper/transcribe.py", line 264, in transcribe
+    with tqdm.tqdm(
+         ^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/tqdm/std.py", line 1140, in __exit__
+    self.close()
+  File "/usr/local/lib/python3.12/dist-packages/tqdm/std.py", line 1302, in close
+    self.display(pos=0)
+  File "/usr/local/lib/python3.12/dist-packages/tqdm/std.py", line 1495, in display
+    self.sp(self.__str__() if msg is None else msg)
+  File "/usr/local/lib/python3.12/dist-packages/tqdm/std.py", line 457, in print_status
+    def print_status(s):
+
+KeyboardInterrupt

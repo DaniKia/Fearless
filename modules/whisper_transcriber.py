@@ -86,8 +86,6 @@ def transcribe_audio(audio_path, model_name="tiny.en", include_timestamps=True, 
     from modules.audio_io import load_audio_safe
     from modules.audio_preprocessor import preprocess_audio
     
-    print(f"Transcribing: {audio_path}")
-    
     if preprocess_config is not None:
         audio, sr, error = load_audio_safe(audio_path)
         if error:
