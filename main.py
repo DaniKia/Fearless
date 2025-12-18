@@ -7,13 +7,35 @@ import sys
 import os
 import argparse
 from pathlib import Path
+from datetime import datetime
 
+from tqdm import tqdm
 from modules.drive_connector import setup_drive_access, is_colab
 from modules.data_loader import get_audio_files_with_transcripts
 from modules.whisper_transcriber import transcribe_audio
-from modules.evaluator import display_comparison
+from modules.evaluator import display_comparison, calculate_wer
 from modules.audio_preprocessor import PreprocessConfig
 import config
+
+
+class ReportWriter:
+    """Captures output and writes to both console and file."""
+    
+    def __init__(self, report_path=None):
+        self.report_path = report_path
+        self.lines = []
+    
+    def print(self, text=""):
+        """Print to console and store for report."""
+        print(text)
+        self.lines.append(text)
+    
+    def save(self):
+        """Save captured output to file."""
+        if self.report_path:
+            with open(self.report_path, 'w') as f:
+                f.write('\n'.join(self.lines))
+            print(f"\nReport saved to: {self.report_path}")
 
 
 def create_preprocess_config(args):
@@ -70,19 +92,44 @@ def run_single_file(audio_path, transcript_dir, dataset='Dev', show_timestamps=T
     
     display_comparison(audio_filename, reference, hypothesis, show_timestamps=show_timestamps)
 
-def run_batch(audio_dir, transcript_dir, limit=5, dataset='Dev', show_timestamps=True, model_name=None, folder='ASR_track2', preprocess_config=None):
+def format_preprocess_config(preprocess_config):
+    """Format preprocessing config for report display."""
+    if not preprocess_config:
+        return ["Preprocessing: DISABLED (baseline)"]
+    
+    lines = ["Preprocessing: ENABLED"]
+    steps = []
+    if preprocess_config.enable_mono:
+        steps.append("mono")
+    if preprocess_config.enable_resample:
+        steps.append(f"resample({preprocess_config.target_sr}Hz)")
+    if preprocess_config.enable_dc_removal:
+        steps.append("dc-removal")
+    if preprocess_config.enable_bandpass:
+        steps.append(f"bandpass({preprocess_config.highpass_cutoff}-{preprocess_config.lowpass_cutoff}Hz)")
+    if preprocess_config.enable_rms_normalization:
+        steps.append(f"rms-norm({preprocess_config.target_rms_db}dB)")
+    if preprocess_config.enable_trim:
+        steps.append(f"trim({preprocess_config.trim_db}dB)")
+    lines.append(f"  Steps: {', '.join(steps) if steps else 'none'}")
+    return lines
+
+
+def run_batch(audio_dir, transcript_dir, limit=None, dataset='Dev', model_name=None, 
+              folder='ASR_track2', preprocess_config=None, report_path=None, verbose=False):
     """
     Process multiple audio files in batch.
     
     Args:
         audio_dir: Directory containing audio files
         transcript_dir: Directory containing reference transcripts
-        limit: Maximum number of files to process
+        limit: Maximum number of files to process (None = all files)
         dataset: Dataset name (Dev, Train, or Eval)
-        show_timestamps: Whether to show timestamps in output
         model_name: Whisper model identifier to use for transcription
         folder: Folder name (for display purposes)
         preprocess_config: Optional PreprocessConfig for audio preprocessing
+        report_path: Optional path to save report file
+        verbose: Whether to show per-utterance details
     """
     pairs = get_audio_files_with_transcripts(audio_dir, transcript_dir, limit=limit, dataset=dataset)
     
@@ -90,41 +137,71 @@ def run_batch(audio_dir, transcript_dir, limit=5, dataset='Dev', show_timestamps
         print("No audio files with transcripts found")
         return
     
-    print(f"\nFound {len(pairs)} audio files with transcripts")
-    print(f"Processing {min(limit, len(pairs))} files...\n")
+    report = ReportWriter(report_path)
+    
+    report.print("=" * 60)
+    report.print("ASR Transcription Report")
+    report.print("=" * 60)
+    report.print(f"Dataset: {folder}/{dataset}")
+    report.print(f"Whisper Model: {model_name or config.WHISPER_MODEL}")
+    report.print(f"Run Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    report.print("")
+    for line in format_preprocess_config(preprocess_config):
+        report.print(line)
+    report.print("=" * 60)
+    report.print("")
+    report.print(f"Processing {len(pairs)} files...")
+    report.print("")
     
     results = []
     
-    for i, (audio_path, reference) in enumerate(pairs, 1):
+    for audio_path, reference in tqdm(pairs, desc="Transcribing", unit="file"):
         audio_filename = os.path.basename(audio_path)
-        print(f"\n[{i}/{len(pairs)}] Processing: {audio_filename}")
         
         hypothesis = transcribe_audio(audio_path, model_name=model_name or config.WHISPER_MODEL, preprocess_config=preprocess_config)
         
-        metrics = display_comparison(
-            audio_filename, 
-            reference, 
-            hypothesis, 
-            show_timestamps=show_timestamps
-        )
+        wer, cer = calculate_wer(reference, hypothesis.get('text', ''))
+        
+        if verbose:
+            report.print(f"\n--- {audio_filename} ---")
+            report.print(f"Reference:  {reference}")
+            report.print(f"Hypothesis: {hypothesis.get('text', '')}")
+            report.print(f"WER: {wer:.2f}%  |  CER: {cer:.2f}%")
         
         results.append({
             'filename': audio_filename,
-            'wer': metrics['wer'],
-            'cer': metrics['cer']
+            'reference': reference,
+            'hypothesis': hypothesis.get('text', ''),
+            'wer': wer,
+            'cer': cer
         })
     
-    print("\n" + "="*80)
-    print("SUMMARY STATISTICS")
-    print("="*80)
-    
-    avg_wer = sum(r['wer'] for r in results) / len(results) if results else 0
-    avg_cer = sum(r['cer'] for r in results) / len(results) if results else 0
-    
-    print(f"Files processed: {len(results)}")
-    print(f"Average WER: {avg_wer:.2f}%")
-    print(f"Average CER: {avg_cer:.2f}%")
-    print("="*80)
+    if results:
+        report.print("")
+        report.print("=" * 60)
+        report.print("SUMMARY STATISTICS")
+        report.print("=" * 60)
+        
+        avg_wer = sum(r['wer'] for r in results) / len(results)
+        avg_cer = sum(r['cer'] for r in results) / len(results)
+        
+        min_wer = min(r['wer'] for r in results)
+        max_wer = max(r['wer'] for r in results)
+        min_cer = min(r['cer'] for r in results)
+        max_cer = max(r['cer'] for r in results)
+        
+        report.print(f"Files processed: {len(results)}")
+        report.print("")
+        report.print(f"Average WER: {avg_wer:.2f}%")
+        report.print(f"  Min WER: {min_wer:.2f}%")
+        report.print(f"  Max WER: {max_wer:.2f}%")
+        report.print("")
+        report.print(f"Average CER: {avg_cer:.2f}%")
+        report.print(f"  Min CER: {min_cer:.2f}%")
+        report.print(f"  Max CER: {max_cer:.2f}%")
+        report.print("=" * 60)
+        
+        report.save()
 
 def main():
     """Main entry point."""
@@ -135,10 +212,12 @@ def main():
                        help='Dataset to use: Dev, Train, or Eval')
     parser.add_argument('--file', type=str, default=None,
                        help='Specific audio file to process')
-    parser.add_argument('--batch', type=int, default=5,
-                       help='Number of files to process in batch mode')
-    parser.add_argument('--no-timestamps', action='store_true',
-                       help='Disable timestamp display')
+    parser.add_argument('--batch', type=int, default=None,
+                       help='Limit number of files to process (default: all files)')
+    parser.add_argument('--verbose', action='store_true',
+                       help='Show per-utterance comparison details')
+    parser.add_argument('--report', type=str, default=None,
+                       help='Save report to specified file path')
     parser.add_argument('--whisper-model', type=str, default=None,
                        help='Override the configured Whisper model (e.g., tiny.en, base, small.en)')
 
@@ -228,8 +307,6 @@ def main():
     print(f"\nAudio directory: {audio_dir}")
     print(f"Transcript directory: {transcript_dir}")
     
-    show_timestamps = not args.no_timestamps
-    
     if args.file:
         audio_path = os.path.join(audio_dir, args.file)
         if not os.path.exists(audio_path):
@@ -239,7 +316,7 @@ def main():
             audio_path,
             transcript_dir,
             dataset=args.dataset,
-            show_timestamps=show_timestamps,
+            show_timestamps=True,
             model_name=model_name,
             folder=args.folder,
             preprocess_config=preprocess_config
@@ -250,10 +327,11 @@ def main():
             transcript_dir,
             limit=args.batch,
             dataset=args.dataset,
-            show_timestamps=show_timestamps,
             model_name=model_name,
             folder=args.folder,
-            preprocess_config=preprocess_config
+            preprocess_config=preprocess_config,
+            report_path=args.report,
+            verbose=args.verbose
         )
 
 if __name__ == "__main__":
