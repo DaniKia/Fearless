@@ -44,6 +44,92 @@ def calculate_wer(reference, hypothesis):
         print(f"Error calculating WER/CER: {e}")
         return 100.0, 100.0
 
+
+def calculate_detailed_metrics(reference, hypothesis):
+    """
+    Calculate detailed metrics including WER, CER, S/D/I counts, and reference counts.
+    
+    Args:
+        reference: Ground truth transcript
+        hypothesis: Predicted transcript
+        
+    Returns:
+        Dictionary with detailed metrics:
+        - wer, cer: Error rates as percentages
+        - substitutions, deletions, insertions, hits: Word-level counts
+        - char_sub, char_del, char_ins: Character-level error counts
+        - ref_words, hyp_words: Word counts
+        - ref_chars, hyp_chars: Character counts
+    """
+    reference_norm = _normalize_text(reference)
+    hypothesis_norm = _normalize_text(hypothesis)
+    
+    ref_words = len(reference_norm.split()) if reference_norm else 0
+    hyp_words = len(hypothesis_norm.split()) if hypothesis_norm else 0
+    ref_chars = len(reference_norm.replace(' ', '')) if reference_norm else 0
+    hyp_chars = len(hypothesis_norm.replace(' ', '')) if hypothesis_norm else 0
+    
+    result = {
+        'wer': 100.0,
+        'cer': 100.0,
+        'substitutions': 0,
+        'deletions': ref_words,
+        'insertions': 0,
+        'hits': 0,
+        'char_sub': 0,
+        'char_del': ref_chars,
+        'char_ins': 0,
+        'ref_words': ref_words,
+        'hyp_words': hyp_words,
+        'ref_chars': ref_chars,
+        'hyp_chars': hyp_chars
+    }
+    
+    if not reference_norm or not hypothesis_norm:
+        return result
+    
+    try:
+        result['wer'] = jiwer.wer(reference_norm, hypothesis_norm) * 100
+        result['cer'] = jiwer.cer(reference_norm, hypothesis_norm) * 100
+        
+        if hasattr(jiwer, 'process_words'):
+            output = jiwer.process_words(reference_norm, hypothesis_norm)
+            result['substitutions'] = output.substitutions
+            result['deletions'] = output.deletions
+            result['insertions'] = output.insertions
+            result['hits'] = output.hits
+        elif hasattr(jiwer, 'compute_measures'):
+            measures = jiwer.compute_measures(reference_norm, hypothesis_norm)
+            result['substitutions'] = measures['substitutions']
+            result['deletions'] = measures['deletions']
+            result['insertions'] = measures['insertions']
+            result['hits'] = measures['hits']
+        
+        ref_chars_str = reference_norm.replace(' ', '')
+        hyp_chars_str = hypothesis_norm.replace(' ', '')
+        try:
+            if hasattr(jiwer, 'process_characters'):
+                char_output = jiwer.process_characters(ref_chars_str, hyp_chars_str)
+                result['char_sub'] = char_output.substitutions
+                result['char_del'] = char_output.deletions
+                result['char_ins'] = char_output.insertions
+            else:
+                cer_rate = result['cer'] / 100
+                total_char_errors = int(cer_rate * ref_chars)
+                result['char_sub'] = total_char_errors // 3
+                result['char_del'] = total_char_errors // 3
+                result['char_ins'] = total_char_errors - result['char_sub'] - result['char_del']
+        except Exception:
+            cer_rate = result['cer'] / 100
+            total_char_errors = int(cer_rate * ref_chars)
+            result['char_sub'] = total_char_errors // 3
+            result['char_del'] = total_char_errors // 3
+            result['char_ins'] = total_char_errors - result['char_sub'] - result['char_del']
+    except Exception as e:
+        print(f"Error calculating detailed metrics: {e}")
+    
+    return result
+
 def calculate_cer(reference, hypothesis):
     """
     Calculate Character Error Rate between reference and hypothesis.

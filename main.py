@@ -13,7 +13,7 @@ from tqdm import tqdm
 from modules.drive_connector import setup_drive_access, is_colab
 from modules.data_loader import get_audio_files_with_transcripts
 from modules.whisper_transcriber import transcribe_audio
-from modules.evaluator import display_comparison, calculate_wer
+from modules.evaluator import display_comparison, calculate_detailed_metrics
 from modules.audio_preprocessor import PreprocessConfig
 import config
 
@@ -155,50 +155,73 @@ def run_batch(audio_dir, transcript_dir, limit=None, dataset='Dev', model_name=N
     
     results = []
     
+    from modules.audio_io import load_audio_safe
+    
     for audio_path, reference in tqdm(pairs, desc="Transcribing", unit="file"):
         audio_filename = os.path.basename(audio_path)
         
+        audio, sr, error = load_audio_safe(audio_path)
+        duration = len(audio) / sr if audio is not None and sr else 0
+        
         hypothesis = transcribe_audio(audio_path, model_name=model_name or config.WHISPER_MODEL, preprocess_config=preprocess_config)
         
-        wer, cer = calculate_wer(reference, hypothesis.get('text', ''))
+        metrics = calculate_detailed_metrics(reference, hypothesis.get('text', ''))
         
         if verbose:
             report.print(f"\n--- {audio_filename} ---")
             report.print(f"Reference:  {reference}")
             report.print(f"Hypothesis: {hypothesis.get('text', '')}")
-            report.print(f"WER: {wer:.2f}%  |  CER: {cer:.2f}%")
+            report.print(f"WER: {metrics['wer']:.2f}%  |  CER: {metrics['cer']:.2f}%")
+            report.print(f"S: {metrics['substitutions']} | D: {metrics['deletions']} | I: {metrics['insertions']}")
         
         results.append({
             'filename': audio_filename,
             'reference': reference,
             'hypothesis': hypothesis.get('text', ''),
-            'wer': wer,
-            'cer': cer
+            'duration': duration,
+            **metrics
         })
     
     if results:
-        report.print("")
-        report.print("=" * 60)
-        report.print("SUMMARY STATISTICS")
-        report.print("=" * 60)
+        total_duration = sum(r['duration'] for r in results)
+        total_ref_words = sum(r['ref_words'] for r in results)
+        total_ref_chars = sum(r['ref_chars'] for r in results)
+        total_sub = sum(r['substitutions'] for r in results)
+        total_del = sum(r['deletions'] for r in results)
+        total_ins = sum(r['insertions'] for r in results)
+        total_char_sub = sum(r.get('char_sub', 0) for r in results)
+        total_char_del = sum(r.get('char_del', 0) for r in results)
+        total_char_ins = sum(r.get('char_ins', 0) for r in results)
+        
+        total_word_errors = total_sub + total_del + total_ins
+        total_char_errors = total_char_sub + total_char_del + total_char_ins
+        corpus_wer = (total_word_errors / total_ref_words * 100) if total_ref_words > 0 else 0
+        corpus_cer = (total_char_errors / total_ref_chars * 100) if total_ref_chars > 0 else 0
         
         avg_wer = sum(r['wer'] for r in results) / len(results)
         avg_cer = sum(r['cer'] for r in results) / len(results)
-        
         min_wer = min(r['wer'] for r in results)
         max_wer = max(r['wer'] for r in results)
-        min_cer = min(r['cer'] for r in results)
-        max_cer = max(r['cer'] for r in results)
         
-        report.print(f"Files processed: {len(results)}")
+        hours = total_duration / 3600
+        
         report.print("")
-        report.print(f"Average WER: {avg_wer:.2f}%")
-        report.print(f"  Min WER: {min_wer:.2f}%")
-        report.print(f"  Max WER: {max_wer:.2f}%")
+        report.print("=" * 60)
+        report.print("CORPUS-LEVEL STATISTICS")
+        report.print("=" * 60)
+        report.print(f"Utterances: {len(results):,}")
+        report.print(f"Total audio: {hours:.1f} h ({total_duration:.0f} sec)")
+        report.print(f"Ref words: {total_ref_words:,}")
+        report.print(f"Ref chars: {total_ref_chars:,}")
         report.print("")
-        report.print(f"Average CER: {avg_cer:.2f}%")
-        report.print(f"  Min CER: {min_cer:.2f}%")
-        report.print(f"  Max CER: {max_cer:.2f}%")
+        report.print(f"WER: {corpus_wer:.1f}%  |  CER: {corpus_cer:.1f}%")
+        report.print(f"S: {total_sub:,}  |  D: {total_del:,}  |  I: {total_ins:,}")
+        report.print("")
+        report.print("=" * 60)
+        report.print("PER-UTTERANCE STATISTICS")
+        report.print("=" * 60)
+        report.print(f"Avg WER: {avg_wer:.2f}%  (Min: {min_wer:.2f}%, Max: {max_wer:.2f}%)")
+        report.print(f"Avg CER: {avg_cer:.2f}%")
         report.print("=" * 60)
         
         report.save()
