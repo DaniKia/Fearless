@@ -12,9 +12,39 @@ from modules.drive_connector import setup_drive_access, is_colab
 from modules.data_loader import get_audio_files_with_transcripts
 from modules.whisper_transcriber import transcribe_audio
 from modules.evaluator import display_comparison
+from modules.audio_preprocessor import PreprocessConfig
 import config
 
-def run_single_file(audio_path, transcript_dir, dataset='Dev', show_timestamps=True, model_name=None, folder='ASR_track2'):
+
+def create_preprocess_config(args):
+    """
+    Create PreprocessConfig from CLI arguments.
+    
+    Args:
+        args: Parsed command line arguments
+        
+    Returns:
+        PreprocessConfig or None if preprocessing disabled
+    """
+    if not args.preprocess:
+        return None
+    
+    return PreprocessConfig(
+        enable_mono=args.mono,
+        enable_resample=args.resample,
+        target_sr=args.target_sr,
+        enable_dc_removal=args.dc_removal,
+        enable_bandpass=args.bandpass,
+        highpass_cutoff=args.highpass,
+        lowpass_cutoff=args.lowpass,
+        enable_rms_normalization=args.rms_norm,
+        target_rms_db=args.rms_db,
+        enable_trim=args.trim,
+        trim_db=args.trim_db,
+        min_duration=0.1
+    )
+
+def run_single_file(audio_path, transcript_dir, dataset='Dev', show_timestamps=True, model_name=None, folder='ASR_track2', preprocess_config=None):
     """
     Process a single audio file.
     
@@ -25,6 +55,7 @@ def run_single_file(audio_path, transcript_dir, dataset='Dev', show_timestamps=T
         show_timestamps: Whether to show timestamps in output
         model_name: Whisper model identifier to use for transcription
         folder: Folder name (for display purposes)
+        preprocess_config: Optional PreprocessConfig for audio preprocessing
     """
     audio_filename = os.path.basename(audio_path)
     
@@ -35,11 +66,11 @@ def run_single_file(audio_path, transcript_dir, dataset='Dev', show_timestamps=T
         print(f"Error: No reference transcript found for {audio_filename}")
         return
     
-    hypothesis = transcribe_audio(audio_path, model_name=model_name or config.WHISPER_MODEL)
+    hypothesis = transcribe_audio(audio_path, model_name=model_name or config.WHISPER_MODEL, preprocess_config=preprocess_config)
     
     display_comparison(audio_filename, reference, hypothesis, show_timestamps=show_timestamps)
 
-def run_batch(audio_dir, transcript_dir, limit=5, dataset='Dev', show_timestamps=True, model_name=None, folder='ASR_track2'):
+def run_batch(audio_dir, transcript_dir, limit=5, dataset='Dev', show_timestamps=True, model_name=None, folder='ASR_track2', preprocess_config=None):
     """
     Process multiple audio files in batch.
     
@@ -51,6 +82,7 @@ def run_batch(audio_dir, transcript_dir, limit=5, dataset='Dev', show_timestamps
         show_timestamps: Whether to show timestamps in output
         model_name: Whisper model identifier to use for transcription
         folder: Folder name (for display purposes)
+        preprocess_config: Optional PreprocessConfig for audio preprocessing
     """
     pairs = get_audio_files_with_transcripts(audio_dir, transcript_dir, limit=limit, dataset=dataset)
     
@@ -67,7 +99,7 @@ def run_batch(audio_dir, transcript_dir, limit=5, dataset='Dev', show_timestamps
         audio_filename = os.path.basename(audio_path)
         print(f"\n[{i}/{len(pairs)}] Processing: {audio_filename}")
         
-        hypothesis = transcribe_audio(audio_path, model_name=model_name or config.WHISPER_MODEL)
+        hypothesis = transcribe_audio(audio_path, model_name=model_name or config.WHISPER_MODEL, preprocess_config=preprocess_config)
         
         metrics = display_comparison(
             audio_filename, 
@@ -110,9 +142,36 @@ def main():
     parser.add_argument('--whisper-model', type=str, default=None,
                        help='Override the configured Whisper model (e.g., tiny.en, base, small.en)')
 
+    preprocess_group = parser.add_argument_group('Preprocessing Options')
+    preprocess_group.add_argument('--preprocess', action='store_true',
+                                   help='Enable audio preprocessing')
+    preprocess_group.add_argument('--mono', action='store_true',
+                                   help='Enable mono conversion')
+    preprocess_group.add_argument('--resample', action='store_true',
+                                   help='Enable resampling to target sample rate')
+    preprocess_group.add_argument('--target-sr', type=int, default=16000,
+                                   help='Target sample rate (default: 16000)')
+    preprocess_group.add_argument('--dc-removal', action='store_true',
+                                   help='Enable DC offset removal')
+    preprocess_group.add_argument('--bandpass', action='store_true',
+                                   help='Enable bandpass filter')
+    preprocess_group.add_argument('--highpass', type=int, default=80,
+                                   help='Highpass cutoff Hz (default: 80)')
+    preprocess_group.add_argument('--lowpass', type=int, default=7500,
+                                   help='Lowpass cutoff Hz (default: 7500)')
+    preprocess_group.add_argument('--rms-norm', action='store_true',
+                                   help='Enable RMS normalization')
+    preprocess_group.add_argument('--rms-db', type=float, default=-20.0,
+                                   help='Target RMS level in dB (default: -20)')
+    preprocess_group.add_argument('--trim', action='store_true',
+                                   help='Enable silence trimming')
+    preprocess_group.add_argument('--trim-db', type=float, default=30.0,
+                                   help='Trim threshold in dB (default: 30)')
+
     args = parser.parse_args()
 
     model_name = args.whisper_model or config.WHISPER_MODEL
+    preprocess_config = create_preprocess_config(args)
 
     print("="*80)
     print("ASR Pipeline with Whisper")
@@ -121,6 +180,24 @@ def main():
     print(f"Folder: {args.folder}")
     print(f"Dataset: {args.dataset}")
     print(f"Whisper Model: {model_name}")
+    if preprocess_config:
+        print(f"Preprocessing: ENABLED")
+        steps = []
+        if preprocess_config.enable_mono:
+            steps.append("mono")
+        if preprocess_config.enable_resample:
+            steps.append(f"resample({preprocess_config.target_sr}Hz)")
+        if preprocess_config.enable_dc_removal:
+            steps.append("dc-removal")
+        if preprocess_config.enable_bandpass:
+            steps.append(f"bandpass({preprocess_config.highpass_cutoff}-{preprocess_config.lowpass_cutoff}Hz)")
+        if preprocess_config.enable_rms_normalization:
+            steps.append(f"rms-norm({preprocess_config.target_rms_db}dB)")
+        if preprocess_config.enable_trim:
+            steps.append(f"trim({preprocess_config.trim_db}dB)")
+        print(f"  Steps: {', '.join(steps) if steps else 'none'}")
+    else:
+        print(f"Preprocessing: DISABLED (baseline)")
     print("="*80)
     
     if not is_colab():
@@ -164,7 +241,8 @@ def main():
             dataset=args.dataset,
             show_timestamps=show_timestamps,
             model_name=model_name,
-            folder=args.folder
+            folder=args.folder,
+            preprocess_config=preprocess_config
         )
     else:
         run_batch(
@@ -174,7 +252,8 @@ def main():
             dataset=args.dataset,
             show_timestamps=show_timestamps,
             model_name=model_name,
-            folder=args.folder
+            folder=args.folder,
+            preprocess_config=preprocess_config
         )
 
 if __name__ == "__main__":
