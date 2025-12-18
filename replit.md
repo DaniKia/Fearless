@@ -49,7 +49,10 @@ The project prioritizes a command-line interface (CLI) for interaction, focusing
   - `--highpass`, `--lowpass` - Bandpass cutoffs in Hz
   - `--rms-db` - RMS normalization target in dB
   - `--trim-db` - Silence trim threshold in dB
-  - Example ablation: `python main.py --dataset Dev --file test.wav --preprocess --mono --resample`
+  - `--batch N` - Limit to N files (default: all files)
+  - `--verbose` - Show per-utterance transcript comparisons
+  - `--report /path/to/report.txt` - Save report to text file
+  - Example ablation: `python main.py --folder ASR_track2 --dataset Dev --whisper-model tiny.en --preprocess --mono --resample --report asr_report.txt`
 - **Enrollment (`enroll.py`)**: Standalone script for speaker enrollment. Creates pkl files with speaker embeddings and metadata (preprocessing settings, dataset info, date). Supports configurable preprocessing via CLI flags. Supports multiple `--output` files for batch PKL creation with same settings.
   - **Embedding Normalization** (`--normalize`): L2 normalization of speaker embeddings for improved similarity comparisons. Normalizes each embedding before averaging, then normalizes the centroid. Recommended for better cosine similarity behavior.
 - **SID Pipeline (`sid_main.py`)**: Identifies speakers using pre-enrolled embeddings. **Preprocessing settings are automatically loaded from PKL metadata** - no separate `--preprocess` flag needed. When multiple PKLs are provided via `--embedding`, each runs with its own embedded preprocessing settings.
